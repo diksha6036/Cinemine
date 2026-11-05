@@ -47,8 +47,8 @@ button, a { transition: color 180ms, background-color 180ms, border-color 180ms,
 .hero-copy { max-width: 780px; }
 .eyebrow { margin: 0 0 10px; color: #ff782e; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; }
 h1, h2, h3, p { margin-top: 0; }
-h1 { font-family: var(--font-display); font-size: clamp(64px, 4.9vw, 82px); font-weight: 700; line-height: .88; letter-spacing: -2.5px; margin-bottom: 12px; }
-h1 > span { color: var(--color-ember); }
+.discovery-heading { font-family: var(--font-display); font-size: clamp(64px, 4.9vw, 82px); font-weight: 700; line-height: .88; letter-spacing: -2.5px; margin-bottom: 12px; }
+.discovery-heading > span { color: var(--color-ember); }
 .hero-description { margin-bottom: 20px; font: 500 clamp(20px, 1.6vw, 26px) / 1.3 var(--font-display); letter-spacing: .1px; }
 .search-area { max-width: 720px; }
 .search-bar { display: flex; align-items: center; min-height: 53px; border: 1px solid #c8b79caa; border-radius: 12px; background: #f2e4ce0d; box-shadow: 0 3px 24px #0002; overflow: hidden; }
@@ -128,7 +128,7 @@ h1 > span { color: var(--color-ember); }
   .nav-divider { display: none; }
   .mobile-coming-soon { display: inline; margin-left: 12px; font-size: 10px; color: #c8ad89; }
   .hero { padding-top: 112px; min-height: 512px; }
-  h1 { font-size: 72px; }
+  .discovery-heading { font-size: 72px; }
   .hero-description { font-size: 23px; }
   .hero-art { opacity: .9; background-position: center, center, 63% center; }
   .hero-caption { position: static; margin-top: 30px; justify-content: flex-start; font-size: 9px; }
@@ -151,7 +151,7 @@ h1 > span { color: var(--color-ember); }
   .hero { padding-top: 114px; min-height: auto; }
   .hero-art { inset: 0 0 -25px; background-image: linear-gradient(90deg, #0b0d0ebf, #0b0d0e3d), linear-gradient(0deg, #0b0d0e 0%, #0b0d0e60 40%, #0b0d0e00 100%), url('/images/hero-mountains.png'); background-position: center, center, 71% top; }
   .eyebrow { font-size: 9px; letter-spacing: 2.1px; margin-bottom: 14px; }
-  h1 { font-size: clamp(53px, 13.8vw, 76px); line-height: .98; letter-spacing: -2px; margin-bottom: 15px; }
+  .discovery-heading { font-size: clamp(53px, 13.8vw, 76px); line-height: .98; letter-spacing: -2px; margin-bottom: 15px; }
   .hero-description { font-size: 20px; line-height: 1.4; max-width: 320px; margin-bottom: 24px; }
   .search-bar { position: relative; padding-bottom: 51px; min-height: 105px; border-radius: 10px; background: #111617a6; }
   .search-icon { width: 19px; margin-inline: 13px 10px; }
@@ -183,6 +183,91 @@ h1 > span { color: var(--color-ember); }
   .coming-soon { font-size: 8px; letter-spacing: 1px; }
   .site-footer { font-size: 9px; line-height: 1.6; flex-direction: column; gap: 3px; padding-bottom: 20px; }
 }
+.cinepick-section { padding-top: 104px; padding-bottom: 44px; }
+.cinepick-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.cinepick-section-heading .eyebrow { font-size: 10px; letter-spacing: 2.8px; margin-bottom: 10px; }
+.cinepick-section-heading h1 { font: 700 clamp(36px, 3.3vw, 52px) / 1.12 var(--font-display); letter-spacing: -1.3px; margin: 0; }
+.cinepick-section-heading h1 em { color: var(--color-ember); font-style: normal; }
+.cinepick-profile { display: inline-flex; align-items: center; gap: 9px; padding-block: 12px; font-size: 12px; color: var(--color-muted); }
+.cinepick-profile:hover, .instagram-profile-link:hover { color: var(--color-ember); }
+.cinepick-stage { --pick-light: #8bc9d9; --pick-surface: #142b35; position: relative; border: 1px solid #a5b9ba3b; border-radius: 20px; background: radial-gradient(ellipse at 85% 20%, var(--pick-surface), transparent 75%), #101617; box-shadow: 0 18px 70px #0003; }
+.cinepick-theme-winter { --pick-light: #b4d3ef; --pick-surface: #1d344e; }
+.cinepick-theme-arena { --pick-light: #dab799; --pick-surface: #302820; }
+.cinepick-theme-noir { --pick-light: #b7c4a5; --pick-surface: #253124; }
+.cinepick-theme-gold { --pick-light: #f0c78c; --pick-surface: #3a2b18; }
+.cinepick-slide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 40%); gap: 48px; padding: 30px 40px; align-items: center; }
+.cinepick-copy { padding: 20px 0 20px 10px; min-width: 0; }
+.cinepick-kicker { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 600; letter-spacing: 2.2px; text-transform: uppercase; color: var(--pick-light); margin-bottom: 20px; }
+.cinepick-kicker > span { display: block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px #8bc9d94d; }
+.cinepick-copy h2 { font: 700 clamp(44px, 4.3vw, 68px) / 1.05 var(--font-display); letter-spacing: -1.8px; margin-bottom: 28px; text-wrap: balance; }
+.cinepick-story { max-width: 420px; padding-left: 18px; border-left: 1px solid #acb7ad55; }
+.cinepick-collection-label { margin-bottom: 6px; color: var(--color-muted); font-size: 9px; text-transform: uppercase; letter-spacing: 1.8px; }
+.cinepick-story h3 { font: 500 20px / 1.3 var(--font-display); color: var(--pick-light); margin-bottom: 11px; }
+.cinepick-story > p:last-child { font-size: 14px; color: #c5c9c3; line-height: 1.8; margin-bottom: 0; }
+.cinepick-post-link { display: inline-flex; align-items: center; gap: 18px; padding: 13px 18px; margin-top: 30px; min-height: 48px; border: 1px solid #a6b5b25c; border-radius: 7px; font-size: 13px; background: #f2e4ce06; }
+.cinepick-post-link:hover { border-color: var(--pick-light); background: #f2e4ce10; }
+.cinepick-source { margin: 17px 0 0; font-size: 10px; line-height: 1.5; color: #9ca8a5; }
+.cinepick-artwork { position: relative; display: flex; justify-content: center; align-items: center; height: 470px; min-width: 0; border-radius: 10px; background: #080c0d66; overflow: hidden; touch-action: pan-y; }
+.cinepick-artwork img { width: 100%; height: 100%; object-fit: contain; }
+.cinepick-artwork-label { position: absolute; bottom: 10px; right: 10px; display: inline-flex; align-items: center; gap: 7px; border-radius: 5px; padding: 7px 9px; font-size: 9px; color: #eee9df; background: #081012de; border: 1px solid #ffffff2b; }
+.cinepick-image-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 25px; text-align: center; color: var(--pick-light); }
+.cinepick-image-fallback > span:last-child { display: inline-flex; align-items: center; gap: 8px; color: var(--color-cream); font-size: 12px; }
+.cinepick-controls { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid #b0bfb321; padding: 13px 40px; }
+.cinepick-count { font-size: 13px; letter-spacing: 1px; color: var(--pick-light); font-variant-numeric: tabular-nums; }
+.cinepick-count > span { color: #889695; font-size: 11px; }
+.cinepick-dots, .cinepick-arrows { display: flex; align-items: center; }
+.cinepick-dot { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.cinepick-dot > span { display: block; width: 5px; height: 5px; border-radius: 10px; background: #70817e; transition: width 180ms, background-color 180ms; }
+.cinepick-dot.is-active > span { background: var(--pick-light); width: 25px; }
+.cinepick-dot:hover > span { background: var(--color-cream); }
+.cinepick-arrows { gap: 9px; }
+.cinepick-arrows > button { border: 1px solid #a6b5b254; border-radius: 50%; }
+.cinepick-arrows > button:hover { border-color: var(--pick-light); background: #f2e4ce0b; }
+.instagram-profile-link { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-size: 13px; min-height: 44px; color: var(--color-ember); }
+.cinepick-section + .hero { padding-top: 48px; min-height: auto; }
+.cinepick-section + .hero .hero-inner { padding-bottom: 42px; }
+.cinepick-section + .hero .hero-art { opacity: .65; }
+
+@media (max-width: 1100px) {
+  .cinepick-slide { gap: 24px; padding: 26px; grid-template-columns: minmax(0, 1fr) minmax(0, 43%); }
+  .cinepick-artwork { height: 430px; }
+  .cinepick-copy { padding-left: 0; }
+  .cinepick-copy h2 { font-size: 49px; }
+  .cinepick-story > p:last-child { font-size: 13px; }
+  .cinepick-source { max-width: 230px; }
+  .cinepick-controls { padding-inline: 26px; }
+}
+@media (max-width: 760px) {
+  .cinepick-section { padding-top: 100px; padding-bottom: 20px; }
+  .cinepick-section-heading { align-items: flex-start; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .cinepick-section-heading h1 { font-size: clamp(30px, 8.7vw, 43px); letter-spacing: -1px; }
+  .cinepick-section-heading .eyebrow { font-size: 9px; margin-bottom: 7px; }
+  .cinepick-profile { font-size: 11px; padding-block: 7px; }
+  .cinepick-profile svg { width: 14px; }
+  .cinepick-stage { border-radius: 14px; }
+  .cinepick-slide { display: flex; flex-direction: column; padding: 16px; gap: 25px; align-items: stretch; }
+  .cinepick-artwork { order: -1; width: 100%; height: auto; aspect-ratio: 3 / 4; max-height: 560px; }
+  .cinepick-artwork-label { bottom: 8px; right: 8px; font-size: 8px; padding: 6px 7px; }
+  .cinepick-copy { padding: 0 5px 9px; }
+  .cinepick-kicker { font-size: 9px; margin-bottom: 11px; letter-spacing: 1.7px; }
+  .cinepick-copy h2 { font-size: 36px; margin-bottom: 19px; letter-spacing: -.8px; }
+  .cinepick-story { padding-left: 13px; }
+  .cinepick-story h3 { font-size: 19px; margin-bottom: 8px; }
+  .cinepick-story > p:last-child { font-size: 13px; line-height: 1.7; }
+  .cinepick-post-link { margin-top: 23px; padding: 11px 13px; gap: 12px; font-size: 12px; }
+  .cinepick-source { margin-top: 12px; max-width: none; font-size: 9px; }
+  .cinepick-controls { display: grid; grid-template-columns: auto 1fr; padding: 11px 14px 7px; gap: 4px 8px; }
+  .cinepick-count { font-size: 11px; }
+  .cinepick-count > span { font-size: 9px; }
+  .cinepick-dots { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+  .cinepick-dot.is-active > span { width: 18px; }
+  .cinepick-arrows { gap: 7px; justify-self: end; }
+  .cinepick-arrows .icon-button { min-width: 44px; min-height: 44px; }
+  .cinepick-arrows svg { width: 18px; }
+  .cinepick-section + .hero { padding-top: 35px; }
+  .instagram-profile-link { font-size: 12px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }

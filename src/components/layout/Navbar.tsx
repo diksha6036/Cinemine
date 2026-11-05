@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Instagram, Menu, X } from 'lucide-react'
 import { IconButton } from '../ui/IconButton'
+import { instagramProfileUrl } from '../../data/instagramPosts'
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
@@ -28,7 +29,7 @@ export function Navbar() {
         <a href="#tonights-picks" onClick={() => setOpen(false)}>My Picks</a>
         <button type="button" disabled title="Watchlists are coming soon" aria-label="Watchlist — coming soon">Watchlist <span className="mobile-coming-soon">Coming soon</span></button>
         <span className="nav-divider" aria-hidden="true" />
-        <a className="instagram-nav icon-button" href="#instagram" aria-label="From our Instagram" onClick={() => setOpen(false)}><Instagram size={23} strokeWidth={1.7} /></a>
+        <a className="instagram-nav icon-button" href={instagramProfileUrl} target="_blank" rel="noopener noreferrer" aria-label="Visit @dr.cinemine on Instagram (opens in a new tab)" onClick={() => setOpen(false)}><Instagram size={23} strokeWidth={1.7} /></a>
         <IconButton className="sign-in" disabled title="Sign in is coming soon" aria-label="Sign in — coming soon">Sign in</IconButton>
       </nav>
     </div>

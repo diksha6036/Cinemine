@@ -25,6 +25,8 @@ npm run preview
 
 - `src/styles/globals.css`: shared colours, fonts, spacing, responsive layouts, and interaction styles. Tailwind 4 is configured with `@tailwindcss/vite` and `@theme` tokens in this file ([installation reference](https://tailwindcss.com/docs/installation/using-vite)).
 - `src/pages/home/sections/HeroSection.tsx`: headline, supporting copy, and mood selection.
+- `src/components/discovery/CinePickCarousel.tsx`: the first homepage highlight, navigation, and swipe behaviour.
+- `src/data/instagramPosts.ts`: featured post images, film titles, collection summaries, original post links, and the Instagram profile URL.
 - `src/data/movies.ts`: typed, fictional sample movie records from the screenshot.
 - `src/data/moods.ts`: mood labels.
 - `src/components/layout/Navbar.tsx`: local logo and navigation.
@@ -39,13 +41,30 @@ The homepage assembles sections under `src/pages/home/`; `src/components/` conta
 - The search field accepts text. Submitting keeps you on the homepage and explains that search is coming soon; it does not pretend to produce recommendations.
 - Mood chips toggle their selected state and explain that mood discovery is coming soon.
 - Mobile navigation opens, closes, and closes on Escape or selecting a section. Escape returns focus to the toggle.
-- Explore and My Picks scroll to the existing sample picks; Find My Movie focuses the search field; Instagram scrolls to the existing social section.
-- View all, Watchlist, and Sign in are visibly disabled, with accessible coming-soon labels and explanatory titles. No extra pages, authentication, saved lists, external social profile, or Instagram feed are implemented.
+- The first homepage section is a CinePick carousel using five real images from public `@dr.cinemine` posts. Previous/next buttons wrap through the picks, dots select a pick, left/right arrows and Home/End work while the carousel is focused, and horizontal swipes navigate on touch screens. It does not autoplay, so readers can take their time.
+- Explore and My Picks scroll to the existing sample picks; Find My Movie focuses the search field. Instagram links open the supplied `@dr.cinemine` profile in a new tab. Each featured image and its collection link open the original post.
+- View all, Watchlist, and Sign in are visibly disabled, with accessible coming-soon labels and explanatory titles. No extra pages, authentication, saved lists, or automatically updating Instagram feed are implemented.
 - A skip link, visible keyboard focus, labelled fields and icon buttons, reduced-motion support, and image fallbacks are included.
 
 ## Assets and design notes
 
-The logo is a local copy of the exact supplied Instagram CDN image (`cinemine-logo.jpg`), so it does not rely on an expiring CDN URL. A profile URL was not supplied; the Instagram icon navigates to the on-page section rather than inventing an account link. There are no claimed real Instagram posts or engagement counts.
+The logo is a local copy of the exact supplied Instagram CDN image (`cinemine-logo.jpg`), so it does not rely on an expiring CDN URL. Instagram controls link to the supplied profile: https://www.instagram.com/dr.cinemine/. No engagement counts are displayed.
+
+### CinePick carousel
+
+`public/images/cinepicks/pick-1.jpg` through `pick-5.jpg` are unmodified, locally saved images from the second slide of five public posts visible in Instagram's profile embed. The page displays them with `object-fit: contain` so the full artwork remains visible. The supplied Godzilla example was used as a design reference; its exact image was not present in the local attachments or the accessible profile posts.
+
+These manually curated highlights link to their original collections:
+
+- Oxygen — Claustrophobic cinema: https://www.instagram.com/p/DfQCM9LkkZE/
+- The Polar Express — Winter is coming: https://www.instagram.com/p/DfHLieFkp7c/
+- Mortal Kombat — From game to screen: https://www.instagram.com/p/DfAioWZku_-/
+- Parasite — Rich people gone wrong: https://www.instagram.com/p/De7jv_bk_5S/
+- Gods of Egypt — Egyptian mythology: https://www.instagram.com/p/DexAB9ejWZI/
+
+Collection descriptions are concise editorial summaries. These images are real post content; the separate five-card movie section still uses fictional sample records. There is no runtime scraping, Instagram script, iframe, access token, or login requirement. The carousel works locally, while its original-post links require internet access. It does not claim to be a live or complete feed.
+
+To add a post, save its supplied image in `public/images/cinepicks/` and add a typed record to `src/data/instagramPosts.ts` with the correct original post URL and image dimensions. Put a record first to make it the initial highlight. Navigation and the slide count adjust to the data length. The image fallback keeps the original post link usable if a local image is missing.
 
 The five poster artworks use image-only CSS viewports into the provided `design-reference.png`, preserving the supplied artwork without re-creating its interface as an image. Movie titles and metadata are real HTML. Replace a record's `posterUrl` with a standalone image and remove `referenceCrop` to use normal cover images. All five movie records are fictional sample content; no ratings or streaming availability are asserted.
 
@@ -69,5 +88,7 @@ Map future API responses into the frontend's typed `Movie` model in a data adapt
 ## Validation
 
 The production build (including strict TypeScript) and ESLint passed. Headless Google Chrome checks passed at 1440, 1024, 768, and 390 pixels: no horizontal page overflow, all images loaded, all five cards rendered, search retained input without a reload, mood chips toggled, mobile navigation closed on selection and Escape, and the skip link was keyboard accessible. The missing-poster fallback was checked by blocking its image request. No browser console errors were observed. Desktop and mobile screenshots were inspected against the supplied design.
+
+The CinePick update was checked in Chrome at the same four widths: all five original post images loaded, next/previous wraparound and direct dot selection worked, keyboard arrows/Home/End worked, horizontal touch events changed slides, vertical touch gestures left the slide unchanged, and there was no page overflow for any pick. The original-post link remained available when its image was deliberately blocked. Existing search, mood, and mobile-menu controls passed, with no console errors. Lint and the production build passed after the final layout changes.
 
 The dependency audit reported seven moderate development-tool advisories in the TypeScript ESLint dependency chain, originating in `minimatch`. They do not ship in the built frontend. No forced cross-major dependency override has been applied; review with `npm audit` when updating the lint tooling. The lint tooling is pinned to a version compatible with the installed Node.js 20.18 runtime.

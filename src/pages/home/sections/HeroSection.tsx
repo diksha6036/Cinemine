@@ -13,7 +13,7 @@ export function HeroSection() {
     <div className="page-container hero-inner">
       <div className="hero-copy">
         <p className="eyebrow">A good movie changes your evening</p>
-        <h1 id="hero-heading">Every mood.<br /><span>A new story.</span></h1>
+        <h2 id="hero-heading" className="discovery-heading">Every mood.<br /><span>A new story.</span></h2>
         <p className="hero-description">Find your next favourite film, however you feel.</p>
         <SearchBar query={query} onQueryChange={setQuery} />
         <div className="mood-section">
