@@ -145,3 +145,44 @@ test('Vercel functions serve public API URLs using environment-only credentials'
     } finally { globalThis.fetch = originalFetch }
   })
 })
+
+test('Netlify web handler preserves API paths, queries, statuses, and private environment authentication', async () => {
+  await isolatedEnv(async () => {
+    const { default: handler } = await import('../netlify/functions/movie-api.mjs')
+    const request = (path, method = 'GET') => handler(new Request(`https://cinemine.example${path}`, { method }), { ip: 'test-netlify' })
+    const health = await request('/api/health')
+    assert.equal(health.status, 200)
+    assert.equal((await health.json()).configured, false)
+    assert.equal((await request('/api/movies/featured')).status, 503)
+    const originalFetch = globalThis.fetch
+    const token = 'unit-netlify-environment-token'
+    process.env.TMDB_READ_ACCESS_TOKEN = token
+    globalThis.fetch = async (input, options) => {
+      const url = new URL(input)
+      assert.equal(options.headers.Authorization, `Bearer ${token}`)
+      if (url.pathname.endsWith('/configuration')) return Response.json(config)
+      if (url.pathname.endsWith('/search/movie')) {
+        assert.equal(url.searchParams.get('query'), 'Inception & dreams')
+        return Response.json({ results: [{ id: 27205 }] })
+      }
+      return Response.json(record)
+    }
+    try {
+      assert.equal((await (await request('/api/health')).json()).configured, true)
+      const response = await request('/api/movies/search?q=Inception%20%26%20dreams')
+      assert.equal(response.status, 200)
+      assert.match(response.headers.get('content-type'), /application\/json/)
+      assert.equal(response.headers.get('cache-control'), 'no-store')
+      const text = await response.text()
+      assert.equal(text.includes(token), false)
+      assert.equal(JSON.parse(text).movies[0].id, '27205')
+      const detail = await request('/api/movies/27205')
+      assert.equal(detail.status, 200)
+      assert.equal((await detail.json()).movie.runtimeMinutes, 148)
+      assert.equal((await request('/api/movies/search?q=x')).status, 400)
+      assert.equal((await request('/api/movies/search?q=Inception', 'POST')).status, 405)
+      assert.equal((await request('/api/unknown')).status, 404)
+      assert.equal((await request('/not-an-api-route')).status, 404)
+    } finally { globalThis.fetch = originalFetch }
+  })
+})

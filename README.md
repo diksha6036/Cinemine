@@ -63,6 +63,21 @@ The local `.env` file is intentionally ignored by Git and is not uploaded throug
 
 References: [Vite functions on Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Vercel environment variables](https://vercel.com/docs/environment-variables).
 
+## Netlify deployment
+
+The same repository supports Vercel and Netlify simultaneously; keep both hosting configurations committed. Credentials must be configured separately on each platform.
+
+Netlify uses `netlify.toml` for the Vite build (`npm run build`, publish `dist/`, Node 22) and bundles `netlify/functions/movie-api.mjs` as a serverless function. The function's custom `/api/*` route preserves the browser's existing API URLs. The calendar and film page rewrites are separate from API routing. Vercel configuration can stay in the same repository.
+
+1. Push `netlify.toml`, `netlify/functions/`, and the shared `server/` directory to GitHub, then import the repository into Netlify. Use the repository root as the base directory.
+2. In **Netlify → Project configuration → Environment variables**, add `TMDB_READ_ACCESS_TOKEN` using your token. Its scope must include **Functions** (or all scopes), with values enabled for Production and any Deploy Previews you use. Use the raw value, without `Bearer`, quotes, or a `VITE_` prefix.
+3. Trigger a new deploy after setting or changing the variable. Netlify does not inherit Vercel's settings or the Git-ignored local `.env`.
+4. Check `/api/health` on the Netlify domain for JSON with `configured: true`, then check `/api/movies/featured` for live film records.
+
+Use a Git-connected deployment or a Netlify CLI deployment that builds and uploads functions. Dragging only the `dist/` folder into Netlify uploads the static frontend and omits the backend.
+
+Runtime credentials belong in Netlify's environment settings, not `[build.environment]` in `netlify.toml`. The Node version there is a nonsecret build setting. See [Netlify function environment variables](https://docs.netlify.com/build/functions/environment-variables/) and [function routing](https://docs.netlify.com/build/functions/configuration/).
+
 ## What works
 
 - The Cinemine homepage: Cinemine logo and lowercase wordmark on the left, navigation at the top, a large upright CinePick poster slider, and trending movie cards.
@@ -106,6 +121,6 @@ See [the backend integration notes](docs/api-integration.md) for the API contrac
 
 ## Validation
 
-Strict TypeScript and the production build pass. Nine provider and deployment-handler tests and five calendar/date tests pass. Chrome checks at 390, 768, 1024, and 1440 px verify navigation-only search, logo/favicon delivery, upright posters, carousel controls, live title search and film details, regional calendar views, focus restoration, and horizontal overflow. No browser console errors were reported. Production checks also verified the homepage and deep links, correct logo image content type, missing-asset 404 responses, automatic refresh, and live genre, country, and digital-release filters. The production bundle was checked for the configured credential; no secret was found.
+Strict TypeScript and the production build pass. Ten provider and deployment-handler tests and five calendar/date tests pass. Chrome checks at 390, 768, 1024, and 1440 px verify navigation-only search, logo/favicon delivery, upright posters, carousel controls, live title search and film details, regional calendar views, focus restoration, and horizontal overflow. No browser console errors were reported. Production checks also verified the homepage and deep links, correct logo image content type, missing-asset 404 responses, automatic refresh, and live genre, country, and digital-release filters. The production bundle was checked for the configured credential; no secret was found.
 
 Live verification returned 15 featured films and 153 India release events for November 2026. Four regional films currently have no poster in TMDB, including alternate image records; they retain their real release dates and show an artwork-unavailable state rather than invented posters. Counts and coverage will change with the source.

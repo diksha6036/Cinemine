@@ -33,3 +33,9 @@ References: [authentication](https://developer.themoviedb.org/docs/authenticatio
 The root `api/health.js`, `api/movies/featured.js`, `api/movies/search.js`, `api/movies/[id].js`, and `api/releases.js` files export `server/vercel-handler.mjs`, which invokes the same API handler as the local servers. No listening server runs inside a function. `vercel.json` defines the Vite build, a 60-second function duration, and frontend-only rewrites.
 
 Set `TMDB_READ_ACCESS_TOKEN` in Vercel’s Production/Preview environment settings and redeploy. The Git-ignored local `.env` is not part of a GitHub deployment. `/api/health` reports configuration without exposing the secret. Deployment-handler tests exercise every entry point without a local `.env`, using environment-only credentials and isolated upstream fixtures. These are local handler checks, not a verification of a hosted deployment.
+
+## Netlify
+
+`netlify/functions/movie-api.mjs` adapts the web Request/Response interface to the same API handler, preserving the original `/api/*` path, encoded query parameters, JSON statuses, and response headers. Its custom path routes the API independently from the frontend page rewrites. `netlify.toml` sets Node 22, the Vite build and `dist/` publish directory, and esbuild bundling. The Vercel entry points and configuration remain available in the same repository.
+
+Set `TMDB_READ_ACCESS_TOKEN` in Netlify’s project environment settings with Functions scope and the relevant deployment contexts, then redeploy. Variables in `netlify.toml` do not supply function runtime secrets, and Vercel’s environment values are not shared with Netlify. Local tests verify both adapters with environment-only credentials; the Netlify function also passes an esbuild bundle and health-handler smoke check. Hosted deployments have not been verified from this workspace.
