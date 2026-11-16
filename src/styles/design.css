@@ -1,0 +1,131 @@
+/* Preserve Cinemine's original cinematic layout and warm cream/orange palette. */
+.app-content { margin: 0; padding: 0; }
+.header-inner { min-height: 76px; gap: 20px; }
+.brand { color: #f2e4ce; }
+.brand-dot { background: #dfcfb5; }
+.brand-image { width: 40px; height: 40px; border-radius: 50%; border-color: #dfcfb55c; }
+.hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 22px; margin-top: 30px; }
+.hero-actions .feature-button { padding: 14px 18px; }
+.hero-actions .text-button { color: #ecd5b8; font-size: 13px; }
+.main-nav { gap: clamp(20px, 2.3vw, 36px); margin-left: auto; font-size: 15px; }
+.main-nav > a.active { color: #f3ac79; }
+.main-nav .instagram-nav { margin-inline: -9px; }
+.main-nav .nav-divider { margin-inline: -3px; }
+.navbar-search { margin-left: 0; order: initial; }
+.nav-find { font-size: inherit; }
+.menu-toggle { order: initial; }
+.movie-poster { aspect-ratio: 2 / 3; background: #141a1d; }
+.movie-poster img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.poster-fallback { min-height: 100%; color: #bdb2a0; background: radial-gradient(ellipse at top, #243033, #101415); }
+.poster-fallback small { font-size: 10px; color: #a39885; }
+.movie-card-select { padding: 0; text-align: left; }
+.movie-card h3 { font-family: var(--font-display); font-size: clamp(19px, 1.5vw, 25px); line-height: 1.25; }
+.movie-meta { font-size: 9px; letter-spacing: 1.5px; line-height: 1.6; }
+.movie-meta > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.movie-grid { row-gap: 30px; }
+.view-all { cursor: pointer; }
+.cinepick-section { padding-top: 108px; }
+.cinepick-stage { border-radius: 18px; border-color: #a5b9ba36; }
+.cinepick-slide { grid-template-columns: minmax(0, 1fr) minmax(0, 40%); padding: 32px 40px; min-height: 532px; }
+.cinepick-copy { padding-block: 18px; }
+.cinepick-copy h2 { font-size: clamp(40px, 4vw, 64px); margin-bottom: 13px; }
+.cinepick-kicker { color: #b6cfce; margin-bottom: 19px; }
+.cinepick-film-meta { color: #c9b89f; font-size: 12px; line-height: 1.6; margin-bottom: 24px; }
+.cinepick-story { max-width: 470px; }
+.cinepick-story > p:last-child { font-size: 14px; line-height: 1.85; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; color: #c4c8c2; }
+.cinepick-genres { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 21px; }
+.cinepick-genres > span { font-size: 10px; padding: 5px 10px; border: 1px solid #c6b8a52b; border-radius: 30px; color: #d6c8b3; }
+.cinepick-post-link { color: #f3cfb1; border-color: #d68e5e5e; background: #ee67270d; margin-top: 24px; }
+.cinepick-post-link:hover { background: #ee67271a; border-color: #ee9764; }
+.cinepick-artwork { background: transparent; height: 470px; }
+.cinepick-artwork .movie-poster { height: 100%; width: 100%; aspect-ratio: auto; background: #060b0d66; }
+.cinepick-artwork .movie-poster img { object-fit: contain; }
+.cinepick-artwork .poster-fallback { height: 100%; }
+.cinepick-controls { padding-inline: 40px; }
+.cinepick-dot.is-active > span { background: #f19863; }
+.cinepick-count { color: #e5c6a7; }
+.cinepick-empty { display: flex; align-items: center; justify-content: center; gap: 15px; min-height: 470px; padding: 40px; color: #cbbca6; text-align: center; }
+.cinepick-empty h2 { font: 500 35px / 1.2 var(--font-display); color: #f2e4ce; margin-bottom: 16px; }
+.cinepick-empty p { font-size: 13px; line-height: 1.8; max-width: 540px; }
+.cinepick-section + .hero .hero-art { opacity: .85; }
+.feature-loading { display: flex; align-items: center; justify-content: center; gap: 13px; padding: 35px 20px; font-size: 13px; color: #cbbca6; }
+.loading-orbit { height: 22px; width: 22px; border: 1px solid #e5c6a733; border-top-color: #eb8b52; border-radius: 50%; flex-shrink: 0; animation: orbit-spin 1s linear infinite; }
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+.source-label { color: #c4ccca; font-size: 10px; padding: 4px 9px; border: 1px solid #a9c1c14d; border-radius: 5px; }
+.calendar-data-note > .text-button { margin-left: auto; font-size: 11px; }
+.coverage-note { color: #c9b899; font-size: 12px; line-height: 1.7; border-left: 2px solid #ee67276b; padding-left: 13px; }
+.type-premiere { color: #d3b9e5; background: #70518c33; }
+.type-limited-theatrical { color: #edbd83; background: #80582133; }
+.type-physical { color: #bfc9b0; background: #566c3b33; }
+.type-tv { color: #a2c6e7; background: #294f7333; }
+.tiny-poster .movie-poster { aspect-ratio: 2 / 3; }
+.tiny-poster .poster-fallback { padding: 3px; }
+.tiny-poster .poster-fallback span, .tiny-poster .poster-fallback small { display: none; }
+.tiny-poster .poster-fallback svg { width: 15px; }
+.movie-preview .preview-poster .movie-poster { aspect-ratio: 2 / 3; }
+.search-result-grid .movie-poster { aspect-ratio: 2 / 3; }
+.search-result-grid .movie-card h3 { font-size: 21px; }
+.movie-detail-page { padding-block: 115px 60px; }
+.detail-back { margin-bottom: 28px; font-size: 12px; }
+.movie-detail-layout { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 52px; }
+.detail-copy { padding-top: 16px; max-width: 700px; }
+.detail-copy h1 { font: 600 clamp(36px, 4vw, 60px) / 1.12 var(--font-display); margin-bottom: 24px; letter-spacing: -1px; }
+.detail-copy h1 em { display: block; font-size: 25px; color: #d2ba9e; font-style: normal; margin-top: 13px; }
+.detail-description { margin-top: 26px; font-size: 15px; color: #d0c0ac; line-height: 1.9; }
+.movie-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 25px; margin-block: 30px; padding-block: 25px; border-block: 1px solid #baa3832b; }
+.movie-facts > div { display: flex; align-items: flex-start; gap: 11px; }
+.movie-facts svg { color: #d4a37c; margin-top: 3px; flex-shrink: 0; }
+.movie-facts span { color: #a99c88; font-size: 11px; line-height: 1.6; }
+.movie-facts strong { display: block; color: #e2d2bb; font-size: 13px; font-weight: 400; margin-top: 5px; }
+.detail-find { font-size: 12px; margin-top: 14px; }
+.source-footnote { font-size: 10px; color: #a29582; line-height: 1.7; margin-top: 22px; }
+@media (min-width: 1001px) {
+  .main-nav { position: static; display: flex; flex-direction: row; align-items: center; gap: clamp(18px, 2.4vw, 36px); padding: 0; border: none; box-shadow: none; background: none; }
+  .main-nav > a, .main-nav > button { padding: 12px 0; }
+  .menu-toggle { display: none; }
+  .main-nav .nav-divider { display: block; }
+}
+@media (max-width: 1100px) {
+  .header-inner { gap: 16px; }
+  .main-nav { font-size: 13px; }
+  .cinepick-slide { gap: 26px; padding-inline: 26px; }
+  .cinepick-artwork { height: 430px; }
+  .cinepick-copy h2 { font-size: 43px; }
+  .cinepick-story > p:last-child { font-size: 13px; }
+}
+@media (max-width: 1000px) {
+  .menu-toggle { display: inline-flex; order: 3; }
+  .navbar-search { margin-left: auto; margin-right: 0; order: 2; }
+  .main-nav { position: absolute; top: 72px; left: var(--page-gutter); right: var(--page-gutter); display: none; flex-direction: column; align-items: stretch; gap: 3px; padding: 15px; margin: 0; border: 1px solid #c9b18f59; border-radius: 12px; background: #121718fa; box-shadow: 0 20px 40px #0008; }
+  .main-nav.is-open { display: flex; }
+  .main-nav > a, .main-nav > button { min-height: 44px; padding: 12px; text-align: left; }
+  .main-nav .instagram-nav { margin: 0; justify-content: flex-start; }
+  .main-nav .nav-divider { display: none; }
+  .movie-detail-layout { grid-template-columns: minmax(0, 250px) minmax(0, 1fr); gap: 32px; }
+}
+@media (max-width: 760px) {
+  .cinepick-slide { gap: 24px; padding: 18px; min-height: auto; }
+  .cinepick-artwork { height: auto; width: 100%; max-height: 470px; aspect-ratio: 2 / 3; }
+  .cinepick-artwork .movie-poster { max-height: 470px; }
+  .cinepick-copy h2 { font-size: 35px; }
+  .cinepick-film-meta { font-size: 11px; margin-bottom: 20px; }
+  .cinepick-story > p:last-child { -webkit-line-clamp: 6; font-size: 13px; }
+  .cinepick-controls { padding: 11px 14px 7px; }
+  .cinepick-empty { min-height: 360px; padding: 26px; }
+  .cinepick-empty h2 { font-size: 29px; }
+  .cinepick-empty p { font-size: 12px; }
+  .movie-grid { row-gap: 24px; }
+  .movie-card h3 { font-size: 21px; }
+  .movie-meta { font-size: 8px; letter-spacing: 1px; }
+  .movie-detail-layout { grid-template-columns: 1fr; gap: 28px; }
+  .detail-art { width: min(80%, 300px); margin-inline: auto; }
+  .movie-detail-page { padding-top: 102px; }
+  .detail-copy { padding: 0; }
+  .detail-copy h1 { font-size: 40px; }
+  .movie-facts { gap: 21px; }
+  .detail-description { font-size: 14px; }
+  .detail-copy .feature-actions { flex-direction: column; }
+  .site-footer { flex-direction: column; gap: 10px; }
+  .calendar-data-note > .text-button { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .loading-orbit { animation: none; border-style: dotted; } }

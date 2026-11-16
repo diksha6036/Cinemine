@@ -1,0 +1,5 @@
+export const genreOptions = [{ id: 18, name: 'Drama' }, { id: 10749, name: 'Romance' }, { id: 53, name: 'Thriller' }, { id: 12, name: 'Adventure' }, { id: 878, name: 'Sci-fi' }, { id: 35, name: 'Comedy' }, { id: 27, name: 'Horror' }, { id: 16, name: 'Animation' }, { id: 9648, name: 'Mystery' }, { id: 14, name: 'Fantasy' }, { id: 28, name: 'Action' }]
+export const languageOptions = [{ code: 'en', name: 'English' }, { code: 'hi', name: 'Hindi' }, { code: 'fr', name: 'French' }, { code: 'ja', name: 'Japanese' }, { code: 'ko', name: 'Korean' }, { code: 'ta', name: 'Tamil' }, { code: 'te', name: 'Telugu' }, { code: 'es', name: 'Spanish' }, { code: 'de', name: 'German' }]
+export const languageName = (code: string) => code === 'und' ? 'Not recorded' : languageOptions.find(option => option.code === code)?.name ?? code
+export const moodOptions = ['Feel-good', 'Thrilling', 'Romantic', 'Emotional', 'Mind-bending', 'Funny']
+export const similarAspects = ['genres', 'cast', 'director', 'romance'] as const

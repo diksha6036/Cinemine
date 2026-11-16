@@ -1,37 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
-import { Instagram, Menu, X } from 'lucide-react'
-import { IconButton } from '../ui/IconButton'
-import { instagramProfileUrl } from '../../data/instagramPosts'
+import { Instagram, Menu, Search, X } from 'lucide-react'
+import { Link, NavLink } from 'react-router-dom'
+import { useSearch } from '../../features/search/useSearch'
 
 export function Navbar() {
+  const { openSearch } = useSearch()
   const [open, setOpen] = useState(false)
-  const [logoFailed, setLogoFailed] = useState(false)
-  const toggleRef = useRef<HTMLButtonElement>(null)
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 1000px)').matches)
+  const toggle = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1000px)')
+    const change = () => { setMobile(media.matches); setOpen(false) }
+    media.addEventListener('change', change)
+    return () => media.removeEventListener('change', change)
+  }, [])
   useEffect(() => {
     if (!open) return
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setOpen(false); toggleRef.current?.focus() }
-    }
-    document.addEventListener('keydown', onEscape)
-    return () => document.removeEventListener('keydown', onEscape)
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpen(false); toggle.current?.focus() } }
+    document.addEventListener('keydown', escape)
+    return () => document.removeEventListener('keydown', escape)
   }, [open])
-
-  return <header className="site-header">
-    <div className="page-container header-inner">
-      <a className="brand" href="/" aria-label="Cinemine home">
-        {logoFailed ? <span className="brand-dot" /> : <img className="brand-image" src="/images/cinemine-logo.jpg" alt="" width="36" height="36" onError={() => setLogoFailed(true)} />}
-        <span>cinemine</span>
-      </a>
-      <button ref={toggleRef} type="button" className="icon-button menu-toggle" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X size={23} /> : <Menu size={23} />}</button>
-      <nav id="main-navigation" aria-label="Main navigation" className={`main-nav ${open ? 'is-open' : ''}`}>
-        <a href="#tonights-picks" onClick={() => setOpen(false)}>Explore</a>
-        <a href="#find-my-movie" onClick={() => { setOpen(false); document.getElementById('movie-query')?.focus() }}>Find My Movie</a>
-        <a href="#tonights-picks" onClick={() => setOpen(false)}>My Picks</a>
-        <button type="button" disabled title="Watchlists are coming soon" aria-label="Watchlist — coming soon">Watchlist <span className="mobile-coming-soon">Coming soon</span></button>
-        <span className="nav-divider" aria-hidden="true" />
-        <a className="instagram-nav icon-button" href={instagramProfileUrl} target="_blank" rel="noopener noreferrer" aria-label="Visit @dr.cinemine on Instagram (opens in a new tab)" onClick={() => setOpen(false)}><Instagram size={23} strokeWidth={1.7} /></a>
-        <IconButton className="sign-in" disabled title="Sign in is coming soon" aria-label="Sign in — coming soon">Sign in</IconButton>
-      </nav>
-    </div>
-  </header>
+  const find = () => { openSearch(); setOpen(false) }
+  return <header className="site-header"><div className="page-container header-inner"><Link className="brand" to="/" aria-label="cinemine home"><img className="brand-image" src="/images/cinemine-logo.jpg" alt="" width={40} height={40} /><span>cinemine</span></Link><nav id="main-navigation" className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation" inert={mobile && !open} aria-hidden={mobile && !open ? true : undefined}><NavLink to="/" end onClick={() => setOpen(false)}>Explore</NavLink><button type="button" className="nav-find" onClick={find}>Find My Movie</button><NavLink to="/calendar" onClick={() => setOpen(false)}>Release Calendar</NavLink><Link to="/#tonights-picks" onClick={() => setOpen(false)}>Trending</Link><span className="nav-divider" aria-hidden="true" /><a className="icon-button instagram-nav" href="https://www.instagram.com/dr.cinemine/" target="_blank" rel="noopener noreferrer" aria-label="Visit @dr.cinemine on Instagram"><Instagram size={22} strokeWidth={1.7} /></a></nav><button type="button" className="icon-button navbar-search" id="global-search-trigger" aria-label="Search movies" aria-haspopup="dialog" onClick={find}><Search size={21} /></button><button ref={toggle} type="button" className="icon-button menu-toggle" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X size={23} /> : <Menu size={23} />}</button></div></header>
 }

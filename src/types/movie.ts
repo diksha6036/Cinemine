@@ -1,10 +1,9 @@
 export interface Movie {
   id: string
   title: string
-  releaseYear: number
+  releaseYear: number | null
   genres: string[]
   posterUrl: string
+  backdropUrl?: string
   shortDescription: string
-  /** Image-only rectangle in the supplied 1536 × 1024 reference; remove for standalone posters. */
-  referenceCrop?: { x: number; y: number; width: number; height: number }
 }

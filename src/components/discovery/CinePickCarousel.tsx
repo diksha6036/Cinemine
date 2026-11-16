@@ -1,75 +1,26 @@
 import { useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUpRight, Film, Instagram } from 'lucide-react'
-import { cinePicks, instagramProfileUrl } from '../../data/instagramPosts'
-import { IconButton } from '../ui/IconButton'
-import type { CinePick } from '../../types/social'
-
-function CinePickArtwork({ pick }: { pick: CinePick }) {
-  const [failed, setFailed] = useState(false)
-
-  return <a className="cinepick-artwork" href={pick.postUrl} target="_blank" rel="noopener noreferrer" aria-label={`See ${pick.title} in its original Instagram post (opens in a new tab)`} draggable={false}>
-    {failed ? <div className="cinepick-image-fallback"><Film size={42} strokeWidth={1} /><span>{pick.title}</span><span>View the artwork on Instagram <ArrowUpRight size={15} /></span></div> : <img src={pick.imageUrl} alt={pick.imageAlt} width={pick.imageWidth} height={pick.imageHeight} decoding="async" fetchPriority="high" onError={() => setFailed(true)} draggable={false} />}
-    <span className="cinepick-artwork-label"><Instagram size={13} /> @dr.cinemine <ArrowUpRight size={13} /></span>
-  </a>
-}
+import { ArrowLeft, ArrowRight, ArrowUpRight, Instagram } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useCatalogue } from '../../features/catalogue/useCatalogue'
+import { MovieArtwork } from '../movies/MovieArtwork'
+import { languageName } from '../../features/search/data/catalogue'
 
 export function CinePickCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const { movies, loading, error, reload } = useCatalogue()
+  const [index, setIndex] = useState(0)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
-  const pick = cinePicks[activeIndex]
-  const select = (index: number) => setActiveIndex((index + cinePicks.length) % cinePicks.length)
-
-  return <section
-    id="cinepicks"
-    className="cinepick-section page-container"
-    aria-labelledby="cinepick-heading"
-    aria-roledescription="carousel"
-    aria-describedby="cinepick-instructions"
-    tabIndex={0}
-    onKeyDown={(event) => {
-      if (event.altKey || event.ctrlKey || event.metaKey) return
-      if (event.key === 'ArrowLeft') { event.preventDefault(); select(activeIndex - 1) }
-      if (event.key === 'ArrowRight') { event.preventDefault(); select(activeIndex + 1) }
-      if (event.key === 'Home') { event.preventDefault(); select(0) }
-      if (event.key === 'End') { event.preventDefault(); select(cinePicks.length - 1) }
-    }}
-  >
-    <div className="cinepick-section-heading">
-      <div><p className="eyebrow">Good films. Great finds.</p><h1 id="cinepick-heading">Today’s <em>CinePick.</em></h1></div>
-      <a className="cinepick-profile" href={instagramProfileUrl} target="_blank" rel="noopener noreferrer"><Instagram size={17} /> From @dr.cinemine <ArrowUpRight size={16} /></a>
-    </div>
-    <p id="cinepick-instructions" className="sr-only">Five highlights from the CineMine Instagram page. Use the previous and next buttons, left and right arrow keys, or swipe to browse. Slides do not advance automatically.</p>
-    <div
-      className={`cinepick-stage cinepick-theme-${pick.theme}`}
-      onTouchStart={(event) => { const touch = event.touches[0]; touchStart.current = { x: touch.clientX, y: touch.clientY } }}
-      onTouchCancel={() => { touchStart.current = null }}
-      onTouchEnd={(event) => {
-        const start = touchStart.current
-        touchStart.current = null
-        if (!start) return
-        const touch = event.changedTouches[0]
-        const dx = touch.clientX - start.x
-        const dy = touch.clientY - start.y
-        if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) select(activeIndex + (dx < 0 ? 1 : -1))
-      }}
-    >
-      <div className="cinepick-slide" role="group" aria-roledescription="slide" aria-label={`${activeIndex + 1} of ${cinePicks.length}: ${pick.title}`}>
-        <div className="cinepick-copy" aria-live="polite" aria-atomic="true">
-          <p className="cinepick-kicker"><span /> The spotlight</p>
-          <h2>{pick.title}</h2>
-          <div className="cinepick-story"><p className="cinepick-collection-label">In the collection</p><h3>{pick.collection}</h3><p>{pick.description}</p></div>
-          <a className="cinepick-post-link" href={pick.postUrl} target="_blank" rel="noopener noreferrer">Explore the Instagram post <ArrowUpRight size={19} /></a>
-          <p className="cinepick-source">Curated by CineMine. Made for your next movie night.</p>
-        </div>
-        <CinePickArtwork key={pick.id} pick={pick} />
-      </div>
-      <div className="cinepick-controls">
-        <span className="cinepick-count" aria-hidden="true">{String(activeIndex + 1).padStart(2, '0')} <span>/ {String(cinePicks.length).padStart(2, '0')}</span></span>
-        <div className="cinepick-dots" role="group" aria-label="Choose a CinePick">
-          {cinePicks.map((item, index) => <button key={item.id} type="button" className={`cinepick-dot ${index === activeIndex ? 'is-active' : ''}`} aria-label={`Show ${item.title}`} aria-pressed={index === activeIndex} onClick={() => select(index)}><span /></button>)}
-        </div>
-        <div className="cinepick-arrows"><IconButton aria-label="Previous CinePick" onClick={() => select(activeIndex - 1)}><ArrowLeft size={21} /></IconButton><IconButton aria-label="Next CinePick" onClick={() => select(activeIndex + 1)}><ArrowRight size={21} /></IconButton></div>
-      </div>
-    </div>
-  </section>
+  const picks = movies.slice(0, 5)
+  const active = index % (picks.length || 1)
+  const pick = picks[active]
+  const select = (value: number) => setIndex((value + picks.length) % (picks.length || 1))
+  return <section id="cinepicks" className="cinepick-section page-container" aria-labelledby="cinepick-heading" aria-roledescription="carousel" tabIndex={0} onKeyDown={event => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+    if (event.key === 'ArrowLeft') { event.preventDefault(); select(active - 1) }
+    if (event.key === 'ArrowRight') { event.preventDefault(); select(active + 1) }
+    if (event.key === 'Home') { event.preventDefault(); select(0) }
+    if (event.key === 'End') { event.preventDefault(); select(picks.length - 1) }
+  }}><div className="cinepick-section-heading"><div><p className="eyebrow">Good films. Great finds.</p><h1 id="cinepick-heading">Today’s <em>CinePick.</em></h1></div><a className="cinepick-profile" href="https://www.instagram.com/dr.cinemine/" target="_blank" rel="noopener noreferrer"><Instagram size={17} /> @dr.cinemine <ArrowUpRight size={16} /></a></div><div className={`cinepick-stage cinepick-theme-${['ocean', 'winter', 'arena', 'noir', 'gold'][active]}`} onTouchStart={event => { const touch = event.touches[0]; touchStart.current = { x: touch.clientX, y: touch.clientY } }} onTouchCancel={() => { touchStart.current = null }} onTouchEnd={event => { const start = touchStart.current; touchStart.current = null; if (!start) return; const touch = event.changedTouches[0], dx = touch.clientX - start.x, dy = touch.clientY - start.y; if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) select(active + (dx < 0 ? 1 : -1)) }}>
+    {pick ? <div className="cinepick-slide" role="group" aria-roledescription="slide" aria-label={`${active + 1} of ${picks.length}: ${pick.title}`}><div className="cinepick-copy" aria-live="polite" aria-atomic="true"><p className="cinepick-kicker"><span /> The spotlight</p><h2>{pick.title}</h2><p className="cinepick-film-meta">{[pick.releaseYear, languageName(pick.originalLanguage), pick.runtimeMinutes && `${pick.runtimeMinutes} min`].filter(Boolean).join(' · ')}</p><div className="cinepick-story"><p className="cinepick-collection-label">The story</p><p>{pick.shortDescription}</p></div><div className="cinepick-genres">{pick.genres.slice(0, 3).map(genre => <span key={genre}>{genre}</span>)}</div><Link className="cinepick-post-link" to={`/movie/${pick.id}`}>Explore this film <ArrowUpRight size={18} /></Link></div><Link className="cinepick-artwork" to={`/movie/${pick.id}`} aria-label={`Explore ${pick.title}`}><MovieArtwork key={pick.id} movie={pick} priority /></Link></div> : <div className="cinepick-empty">{loading ? <><span className="loading-orbit" /><p role="status">Finding your next great film…</p></> : <div role="alert"><h2>Let’s find your next film.</h2><p>{error}</p><button type="button" className="feature-button" onClick={reload}>Retry</button></div>}</div>}
+    {picks.length > 1 && <div className="cinepick-controls"><span className="cinepick-count" aria-hidden="true">{String(active + 1).padStart(2, '0')} <span>/ {String(picks.length).padStart(2, '0')}</span></span><div className="cinepick-dots" role="group" aria-label="Choose a CinePick">{picks.map((movie, i) => <button key={movie.id} type="button" className={`cinepick-dot ${i === active ? 'is-active' : ''}`} aria-label={`Show ${movie.title}`} aria-pressed={i === active} onClick={() => select(i)}><span /></button>)}</div><div className="cinepick-arrows"><button type="button" className="icon-button" aria-label="Previous CinePick" onClick={() => select(active - 1)}><ArrowLeft size={21} /></button><button type="button" className="icon-button" aria-label="Next CinePick" onClick={() => select(active + 1)}><ArrowRight size={21} /></button></div></div>}
+  </div></section>
 }

@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:dates": "node --test tests/calendar.test.mjs",
+    "start": "node server/start.mjs",
+    "test:api": "node --test tests/provider.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
