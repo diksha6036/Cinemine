@@ -48,6 +48,21 @@ npm start
 
 The production server defaults to http://localhost:3000; set the process `PORT` variable to change it. Deploy the Node server and frontend together; a static-only host cannot execute authenticated API requests.
 
+## Vercel deployment
+
+The root `api/` directory exposes the existing backend as Vercel Node functions. `vercel.json` builds the Vite frontend into `dist/`, allows API functions up to 60 seconds, and routes direct visits to `/calendar` and `/movie/:id` to the React app. API requests stay separate from frontend rewrites. Vercel does not need to run `npm start`.
+
+1. Push the `api/` directory, `server/` directory, and `vercel.json` along with the frontend to GitHub. Use this repository's root as the Vercel project root.
+2. In **Vercel → Project → Settings → Environment Variables**, add `TMDB_READ_ACCESS_TOKEN` with the value from your local `.env`. Enable **Production** and **Preview** if you use preview deployments. Use the raw token without `Bearer` or surrounding quotes. Do not use a `VITE_` prefix or commit `.env`.
+3. Redeploy after saving the variable. Environment changes apply to new deployments, not existing ones.
+4. Open `/api/health` on the deployed domain. It must return JSON with `configured: true`. Then open `/api/movies/featured`; it should return movie records.
+
+If `/api/health` is 404 or returns HTML, check that the deployment includes the `api/` directory and has the correct project root. If `configured` is false, check the variable name and its deployment environment, then redeploy. If health is configured but movie requests return 502, check the response's error and Vercel function logs for a rejected credential or upstream connection failure.
+
+The local `.env` file is intentionally ignored by Git and is not uploaded through GitHub. Adding credentials to Vercel is a separate step. Warm functions may cache data briefly; their in-memory cache and rate limiter are not shared across function instances.
+
+References: [Vite functions on Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Vercel environment variables](https://vercel.com/docs/environment-variables).
+
 ## What works
 
 - The Cinemine homepage: Cinemine logo and lowercase wordmark on the left, navigation at the top, a large upright CinePick poster slider, and trending movie cards.
@@ -91,6 +106,6 @@ See [the backend integration notes](docs/api-integration.md) for the API contrac
 
 ## Validation
 
-Strict TypeScript and the production build pass. Eight provider tests and five calendar/date tests pass. Chrome checks at 390, 768, 1024, and 1440 px verify navigation-only search, logo/favicon delivery, upright posters, carousel controls, live title search and film details, regional calendar views, focus restoration, and horizontal overflow. No browser console errors were reported. Production checks also verified the homepage and deep links, correct logo image content type, missing-asset 404 responses, automatic refresh, and live genre, country, and digital-release filters. The production bundle was checked for the configured credential; no secret was found.
+Strict TypeScript and the production build pass. Nine provider and deployment-handler tests and five calendar/date tests pass. Chrome checks at 390, 768, 1024, and 1440 px verify navigation-only search, logo/favicon delivery, upright posters, carousel controls, live title search and film details, regional calendar views, focus restoration, and horizontal overflow. No browser console errors were reported. Production checks also verified the homepage and deep links, correct logo image content type, missing-asset 404 responses, automatic refresh, and live genre, country, and digital-release filters. The production bundle was checked for the configured credential; no secret was found.
 
 Live verification returned 15 featured films and 153 India release events for November 2026. Four regional films currently have no poster in TMDB, including alternate image records; they retain their real release dates and show an artwork-unavailable state rather than invented posters. Counts and coverage will change with the source.

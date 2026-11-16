@@ -27,3 +27,9 @@ Title autocomplete cancels old requests and ignores late results. Structured moo
 Backend requests use bounded concurrency, timeouts, cache/deduplication, and rate limiting. Configuration/authorization errors are safe and actionable without echoing credentials. No Wikidata, keyless, or mock fallback exists in production.
 
 References: [authentication](https://developer.themoviedb.org/docs/authentication-application), [image URLs](https://developer.themoviedb.org/docs/image-basics), [discovery](https://developer.themoviedb.org/reference/discover-movie), [regional releases](https://developer.themoviedb.org/reference/movie-release-dates).
+
+## Vercel
+
+The root `api/health.js`, `api/movies/featured.js`, `api/movies/search.js`, `api/movies/[id].js`, and `api/releases.js` files export `server/vercel-handler.mjs`, which invokes the same API handler as the local servers. No listening server runs inside a function. `vercel.json` defines the Vite build, a 60-second function duration, and frontend-only rewrites.
+
+Set `TMDB_READ_ACCESS_TOKEN` in Vercel’s Production/Preview environment settings and redeploy. The Git-ignored local `.env` is not part of a GitHub deployment. `/api/health` reports configuration without exposing the secret. Deployment-handler tests exercise every entry point without a local `.env`, using environment-only credentials and isolated upstream fixtures. These are local handler checks, not a verification of a hosted deployment.

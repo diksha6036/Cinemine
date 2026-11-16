@@ -108,3 +108,40 @@ test('rejects impossible dates instead of normalizing them', () => {
   assert.equal(validDate('2026-11-31'), false)
   assert.equal(validDate('2026-11-16T00:00:00Z'), false)
 })
+
+test('Vercel functions serve public API URLs using environment-only credentials', async () => {
+  await isolatedEnv(async () => {
+    const originalFetch = globalThis.fetch
+    const token = 'unit-vercel-environment-token'
+    process.env.TMDB_READ_ACCESS_TOKEN = token
+    globalThis.fetch = async (input, options) => {
+      const url = new URL(input)
+      assert.equal(options.headers.Authorization, `Bearer ${token}`)
+      if (url.pathname.endsWith('/configuration')) return Response.json(config)
+      if (url.pathname.endsWith('/search/movie')) assert.equal(url.searchParams.get('query'), 'Inception')
+      if (url.pathname.endsWith('/discover/movie')) {
+        assert.equal(url.searchParams.get('region'), 'IN')
+        assert.equal(url.searchParams.get('with_genres'), '878')
+      }
+      if (!/\/movie\/\d+$/.test(url.pathname)) return Response.json({ total_pages: 1, results: [{ id: 27205 }] })
+      return Response.json({ ...record, release_dates: { results: [{ iso_3166_1: 'IN', release_dates: [{ type: 3, release_date: '2026-11-16T00:00:00.000Z' }] }] } })
+    }
+    const routes = [
+      ['../api/health.js', '/api/health', body => assert.equal(body.configured, true)],
+      ['../api/movies/featured.js', '/api/movies/featured', body => assert.equal(body.movies[0].id, '27205')],
+      ['../api/movies/search.js', '/api/movies/search?q=Inception', body => assert.equal(body.movies[0].title, 'Inception')],
+      ['../api/movies/[id].js', '/api/movies/27205', body => assert.equal(body.movie.runtimeMinutes, 148)],
+      ['../api/releases.js', '/api/releases?from=2026-11-01&to=2026-11-30&country=IN&genre=878&type=Theatrical', body => { assert.equal(body.events.length, 1); assert.equal(body.events[0].countryCode, 'IN') }],
+    ]
+    try {
+      for (const [entry, url, check] of routes) {
+        const { default: handler } = await import(entry)
+        let status, headers, body
+        await handler({ url, method: 'GET', socket: { remoteAddress: 'test-vercel' } }, { writeHead(code, values) { status = code; headers = values }, end(value) { assert.equal(value.includes(token), false); body = JSON.parse(value) } })
+        assert.equal(status, 200, url)
+        assert.match(headers['Content-Type'], /application\/json/)
+        check(body)
+      }
+    } finally { globalThis.fetch = originalFetch }
+  })
+})
