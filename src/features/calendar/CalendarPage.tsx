@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, LayoutList, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Dialog } from '../../components/ui/Dialog'
 import { MoviePreview } from '../../components/movies/MoviePreview'
@@ -14,11 +14,23 @@ import { CalendarMoviesContext } from './CalendarMoviesContext'
 import type { SearchMovie } from '../search/types/search'
 import type { ReleaseEvent } from './types/release'
 import { useLiveRefresh } from '../../lib/useLiveRefresh'
+import { PageDataContext } from '../../app/PageData'
 
 export function CalendarPage() {
-  const today = todayKey()
+  const page = useContext(PageDataContext)
+  const [today, setToday] = useState(page.today ?? todayKey())
   const [visible, setVisible] = useState(() => dateParts(today))
-  const [view, setView] = useState<'month' | 'list'>(() => window.matchMedia('(max-width: 700px)').matches ? 'list' : 'month')
+  useEffect(() => {
+    const current = todayKey()
+    setToday(current)
+    if (current.slice(0, 7) !== today.slice(0, 7)) setVisible(dateParts(current))
+    const timer = window.setInterval(() => setToday(todayKey()), 60000)
+    return () => window.clearInterval(timer)
+    // Bootstrap dates keep server/client markup identical, then follow local time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const [view, setView] = useState<'month' | 'list'>('month')
+  useEffect(() => { if (window.matchMedia('(max-width: 700px)').matches) setView('list') }, [])
   const [country, setCountry] = useState('IN')
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
@@ -36,7 +48,6 @@ export function CalendarPage() {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const [preview, setPreview] = useState<ReleaseEvent | null>(null)
-  useEffect(() => { document.title = 'Release Calendar · cinemine'; return () => { document.title = 'Cinemine — Discover your next great film' } }, [])
   useEffect(() => {
     const controller = new AbortController()
     let active = true

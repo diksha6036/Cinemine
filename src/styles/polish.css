@@ -1,0 +1,18 @@
+/* Small independent additions; the established page composition stays intact. */
+.page-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 50; pointer-events: none; }
+.page-progress > div { height: 100%; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg, #d4632b, #f6b979); }
+.back-to-top { position: fixed; bottom: calc(28px + env(safe-area-inset-bottom)); left: max(22px, env(safe-area-inset-left)); z-index: 19; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #c6b8a536; border-radius: 50%; color: #e8d7bb; background: #151c1eef; box-shadow: 0 4px 18px #0003; }
+.back-to-top:hover { border-color: #ee9c5c99; background: #202a2c; }
+.back-to-top > span { position: absolute; left: 51px; white-space: nowrap; font-size: 11px; opacity: 0; pointer-events: none; color: #e8d7bb; background: #151c1e; padding: 7px 11px; border: 1px solid #c6b8a526; border-radius: 7px; transition: opacity .16s; }
+.back-to-top:hover > span, .back-to-top:focus-visible > span { opacity: 1; }
+.movie-card-art { position: relative; }
+.movie-card-discover { position: absolute; inset: auto 0 0; display: flex; justify-content: flex-end; padding: 32px 12px 12px; border-radius: 0 0 10px 10px; background: linear-gradient(transparent, #060b0ed9); opacity: 0; transform: translateY(3px); transition: opacity .2s, transform .2s; pointer-events: none; }
+.movie-card-discover > span { display: inline-flex; align-items: center; gap: 7px; color: #f5e7d2; font-size: 10px; letter-spacing: .2px; }
+.movie-card-select:hover .movie-card-discover, .movie-card-select:focus-visible .movie-card-discover { opacity: 1; transform: none; }
+.nav-search-shortcut { display: none; font: 400 10px / 1.3 var(--font-sans); color: #acaa9f; padding: 3px 5px; border: 1px solid #c6b8a52b; border-radius: 4px; margin-left: 8px; }
+.share-film.is-copied { border-color: #b2c5a46b; color: #d3e1c8; }
+.share-link-label { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 24px; font-size: 12px; color: #d0c0ac; }
+.share-link-label > input { flex-basis: 100%; }
+@media (min-width: 1400px) { .nav-search-shortcut { display: inline-block; } }
+@media (max-width: 700px) { .back-to-top { width: 38px; height: 38px; left: 16px; bottom: calc(42px + env(safe-area-inset-bottom)); } .back-to-top > span { display: none; } }
+@media (prefers-reduced-motion: reduce) { .movie-card-discover { transform: none; transition: none; } .back-to-top > span { transition: none; } }

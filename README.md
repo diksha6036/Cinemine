@@ -35,11 +35,12 @@ If the credential is missing or rejected, the app explains the configuration err
 npm run lint
 npm run test:dates
 npm run test:api
+npm run test:seo
 npm run build
 npm run preview
 ```
 
-The build checks strict TypeScript and produces `dist/`. Preview includes the backend middleware. To run the production build with the Node server:
+The build checks strict TypeScript and produces browser assets in `dist/` plus a private, self-contained renderer in `dist-ssr/entry-server.mjs`. Preview serves the backend and server-rendered document routes. To run the production build with the Node server:
 
 ```sh
 npm run build
@@ -50,7 +51,7 @@ The production server defaults to http://localhost:3000; set the process `PORT` 
 
 ## Vercel deployment
 
-The root `api/` directory exposes the existing backend as Vercel Node functions. `vercel.json` builds the Vite frontend into `dist/`, allows API functions up to 60 seconds, and routes direct visits to `/calendar` and `/movie/:id` to the React app. API requests stay separate from frontend rewrites. Vercel does not need to run `npm start`.
+The root `api/` directory exposes the backend as Vercel Node functions. `api/pages.js` renders HTML, robots, and sitemap routes; the other functions serve JSON APIs. `vercel.json` places HTML routes before filesystem handling, includes the private SSR artifact in the page function, and keeps static assets and API routes separate. Vercel does not need to run `npm start`.
 
 1. Push the `api/` directory, `server/` directory, and `vercel.json` along with the frontend to GitHub. Use this repository's root as the Vercel project root.
 2. In **Vercel → Project → Settings → Environment Variables**, add `TMDB_READ_ACCESS_TOKEN` with the value from your local `.env`. Enable **Production** and **Preview** if you use preview deployments. Use the raw token without `Bearer` or surrounding quotes. Do not use a `VITE_` prefix or commit `.env`.
@@ -67,7 +68,7 @@ References: [Vite functions on Vercel](https://vercel.com/docs/frameworks/fronte
 
 The same repository supports Vercel and Netlify simultaneously; keep both hosting configurations committed. Credentials must be configured separately on each platform.
 
-Netlify uses `netlify.toml` for the Vite build (`npm run build`, publish `dist/`, Node 22) and bundles `netlify/functions/movie-api.mjs` as a serverless function. The function's custom `/api/*` route preserves the browser's existing API URLs. The calendar and film page rewrites are separate from API routing. Vercel configuration can stay in the same repository.
+Netlify uses `netlify.toml` for the Vite build (`npm run build`, publish `dist/`, Node 22) and bundles `netlify/functions/movie-api.mjs` as a serverless function. The function's custom `/api/*` route preserves the browser's existing API URLs. The `site` function renders documents at `/*`, excluding API and static-asset paths; its bundle includes the HTML template and private SSR module. Vercel configuration can stay in the same repository.
 
 1. Push `netlify.toml`, `netlify/functions/`, and the shared `server/` directory to GitHub, then import the repository into Netlify. Use the repository root as the base directory.
 2. In **Netlify → Project configuration → Environment variables**, add `TMDB_READ_ACCESS_TOKEN` using your token. Its scope must include **Functions** (or all scopes), with values enabled for Production and any Deploy Previews you use. Use the raw value, without `Bearer`, quotes, or a `VITE_` prefix.
@@ -78,6 +79,12 @@ Use a Git-connected deployment or a Netlify CLI deployment that builds and uploa
 
 Runtime credentials belong in Netlify's environment settings, not `[build.environment]` in `netlify.toml`. The Node version there is a nonsecret build setting. See [Netlify function environment variables](https://docs.netlify.com/build/functions/environment-variables/) and [function routing](https://docs.netlify.com/build/functions/configuration/).
 
+## Permanent domain and SEO
+
+Once the domain is ready, set `SITE_URL` to its full HTTPS origin in both hosting projects and redeploy. Until then the current host is used; no domain is hardcoded. SEO includes server-rendered home/movie content, per-route titles and descriptions, canonical links, social cards, factual structured data, crawlable film links, live `/sitemap.xml` and `/robots.txt`, and real HTTP 404/503 responses. Preview deployments are not indexed. See [the SEO and domain guide](docs/seo.md) for Search Console setup and deployment checks.
+
+The popcorn buddy offers real surprise films, another pick without repeats in its current pool, direct film navigation, session dismissal, and reduced-motion support. Its vector character matches the site palette.
+
 ## What works
 
 - The Cinemine homepage: Cinemine logo and lowercase wordmark on the left, navigation at the top, a large upright CinePick poster slider, and trending movie cards.
@@ -86,6 +93,7 @@ Runtime credentials belong in Netlify's environment settings, not `[build.enviro
 - Slider arrows, selection dots, horizontal swipe, and keyboard arrows/Home/End. Artwork stays upright and uncropped. Slides do not autoplay, so visitors can read the synopsis.
 - Real poster and backdrop URLs mapped from TMDB. When a primary poster is missing, the server checks TMDB’s alternate posters across languages. Missing/broken posters have an accessible fallback without inventing artwork or hiding real releases. Posters below the fold lazy-load with reserved aspect ratios.
 - Trending today uses TMDB's daily movie trends, keeping the source rank and up to 20 unique films. View all expands the collection. The carousel uses a separate India now-playing pool, excludes all trending IDs, and rotates its five-film selection each day in India.
+- Small additions: keyboard search with Cmd/Ctrl+K, movie-sharing with native share/copy/manual-link fallbacks, a reading-progress line and adaptive back-to-top control, and poster hover/focus hints.
 - One shared search dialog, opened from navigation. Title autocomplete queries TMDB, supports keyboard selection, and cancels stale requests.
 - Mood and description searches query the live discovery API across the catalogue, with genre, excluded genre, original-language, and strict runtime filters. All selected moods must match; moods remain genre-derived and description input uses explicit keywords. Similar-film searches use movie-specific recommendations or discovery for shared cast/directors, then verify selected facts and exclude the reference film. Show more films follows source pages and excludes already shown IDs. No requirements are silently relaxed.
 - Search state is retained per tab while open. Movie previews replace the dialog contents, with Back to results. Focus trapping, Escape, visible close controls, and trigger restoration are supported.
@@ -121,6 +129,10 @@ See [the backend integration notes](docs/api-integration.md) for the API contrac
 
 ## Validation
 
-The production build, 14 provider/deployment-handler tests, and five calendar/date tests pass. New regressions cover combined filters, exact runtime boundaries, duplicate IDs across source pages, reference-film exclusion, shared cast/director constraints, distinct homepage pools, and both hosting adapters.
+The production client/SSR builds, 14 provider/deployment-handler tests, eight SEO tests, and five calendar/date tests pass. New regressions cover combined filters, exact runtime boundaries, duplicate IDs across source pages, reference-film exclusion, shared cast/director constraints, distinct homepage pools, and both hosting adapters.
 
 Live checks verified 20 unique trending films, five separate carousel films with no overlap, 29 Hindi comedies matching the runtime filter plus 35 additional unique results, and reference-specific recommendations. Chrome checks at 390 and 1440 px verified mood/description/similar-film searches, pagination, slider navigation, focus restoration, and no horizontal overflow or JavaScript errors. Delayed-response and pagination-error checks verify stale requests are ignored, existing results remain visible, and retries add only unique films. Counts will change with the source. Hosted Vercel/Netlify deployments require redeployment and have not been verified from this workspace.
+
+SEO and mascot verification also covers initial HTML without JavaScript, hydration, metadata updates during navigation, canonical/JSON-LD serialization, 404 and outage responses, unique picks, session dismissal, and desktop/mobile behavior. Both HTML hosting adapters are checked as isolated bundles with runtime environment credentials and a configured canonical origin. Actual hosted deployment and domain ownership verification remain account-side steps.
+
+The refined mascot uses layered vector kernels, restrained shading, highlights, and unique gradient IDs that remain stable during server rendering. Extra controls respect reduced motion and preserve the two-section homepage. Desktop/mobile browser checks cover keyboard search, poster hints, adaptive scrolling, native sharing, clipboard confirmation, cancellation, and manually copying links when browser permissions are unavailable.

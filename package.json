@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr",
     "preview": "vite preview",
     "lint": "eslint .",
     "test:dates": "node --test tests/calendar.test.mjs",
     "start": "node server/start.mjs",
-    "test:api": "node --test tests/provider.test.mjs"
+    "test:api": "node --test tests/provider.test.mjs",
+    "test:seo": "node --test tests/seo.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

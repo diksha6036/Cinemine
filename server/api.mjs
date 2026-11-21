@@ -4,7 +4,7 @@ import { readDiscoveryOptions } from './discovery.mjs'
 
 const windows = new Map()
 function send(response, status, body) {
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' })
+  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex' })
   response.end(JSON.stringify(body))
 }
 export function validDate(value) {

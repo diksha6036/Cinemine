@@ -9,14 +9,8 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# API requests use the function's custom /api/* route.
-# Only frontend page URLs fall back to the React application.
-[[redirects]]
-  from = "/calendar"
-  to = "/index.html"
-  status = 200
+[functions.site]
+  included_files = ["dist/index.html", "dist-ssr/**"]
 
-[[redirects]]
-  from = "/movie/*"
-  to = "/index.html"
-  status = 200
+# The site function renders HTML at /*, excluding API and static-asset routes.
+# The movie-api function keeps the existing /api/* routes.

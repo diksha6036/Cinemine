@@ -1,0 +1,18 @@
+.popcorn-buddy { position: fixed; z-index: 20; right: max(22px, env(safe-area-inset-right)); bottom: calc(28px + env(safe-area-inset-bottom)); width: 90px; }
+.buddy-trigger { display: block; width: 90px; height: 104px; padding: 0; border-radius: 40%; filter: drop-shadow(0 7px 12px #0006); transition: transform .2s; }
+.buddy-trigger:hover { transform: translateY(-4px) rotate(-4deg); }
+.popcorn-character { width: 100%; height: 100%; overflow: visible; }
+.buddy-wave { transform-box: fill-box; transform-origin: bottom left; animation: buddy-wave .45s ease-in-out 4 alternate; }
+.buddy-eyes { transform-box: fill-box; transform-origin: center; animation: buddy-blink 8s 2s infinite; }
+.buddy-greeting { position: absolute; right: 11px; bottom: 112px; white-space: nowrap; padding: 9px 13px; border: 1px solid #ee9c5c4d; border-radius: 14px 14px 3px 14px; background: #202524; color: #f2e4ce; font-size: 12px; box-shadow: 0 5px 24px #0004; pointer-events: none; animation: buddy-greeting 7s forwards; }
+.buddy-greeting span { color: #f2a66b; padding-left: 5px; }
+.popcorn-buddy:hover .buddy-greeting, .popcorn-buddy:focus-within .buddy-greeting { opacity: 1; animation: none; }
+.buddy-dismiss { position: absolute; top: -7px; right: -4px; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #c6b8a52b; border-radius: 50%; background: #151b1c; color: #c6b8a5; opacity: 0; transition: opacity .2s; }
+.popcorn-buddy:hover .buddy-dismiss, .popcorn-buddy:focus-within .buddy-dismiss { opacity: 1; }
+.buddy-dialog > h2 { max-width: 550px; }
+.buddy-dialog .movie-preview { margin-top: 20px; }
+@keyframes buddy-wave { to { transform: rotate(22deg); } }
+@keyframes buddy-blink { 0%, 42%, 46%, 100% { transform: scaleY(1); } 44% { transform: scaleY(.12); } }
+@keyframes buddy-greeting { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@media (max-width: 700px) { .popcorn-buddy { width: 65px; right: 15px; bottom: calc(42px + env(safe-area-inset-bottom)); } .buddy-trigger { width: 65px; height: 77px; } .buddy-greeting { bottom: 86px; right: 5px; font-size: 11px; } .buddy-dismiss { opacity: 1; top: -9px; right: -5px; width: 26px; height: 26px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { scroll-behavior: auto !important; } .buddy-wave, .buddy-eyes, .buddy-greeting { animation: none; } .buddy-greeting { opacity: 0; } .buddy-trigger { transition: none; } .buddy-trigger:hover { transform: none; } }
