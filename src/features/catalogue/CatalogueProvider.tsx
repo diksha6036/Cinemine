@@ -7,6 +7,8 @@ import { useLiveRefresh } from '../../lib/useLiveRefresh'
 
 export function CatalogueProvider({ children }: { children: ReactNode }) {
   const [movies, setMovies] = useState<SearchMovie[]>([])
+  const [spotlights, setSpotlights] = useState<SearchMovie[]>([])
+  const [spotlightError, setSpotlightError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshedAt, setRefreshedAt] = useState('')
@@ -17,8 +19,8 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController()
     let active = true
     setLoading(true); setError('')
-    api<{ movies: SearchMovie[]; refreshedAt: string }>('/api/movies/featured', controller.signal).then(data => { if (active) { setMovies(data.movies); setRefreshedAt(data.refreshedAt) } }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load the collection.') }).finally(() => { if (active) setLoading(false) })
+    api<{ movies: SearchMovie[]; spotlights: SearchMovie[]; spotlightError: string; refreshedAt: string }>('/api/movies/featured', controller.signal).then(data => { if (active) { setMovies(data.movies); setSpotlights(data.spotlights); setSpotlightError(data.spotlightError); setRefreshedAt(data.refreshedAt) } }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load the collection.') }).finally(() => { if (active) setLoading(false) })
     return () => { active = false; controller.abort() }
   }, [generation])
-  return <CatalogueContext.Provider value={{ movies, loading, error, refreshedAt, reload }}>{children}</CatalogueContext.Provider>
+  return <CatalogueContext.Provider value={{ movies, spotlights, spotlightError, loading, error, refreshedAt, reload }}>{children}</CatalogueContext.Provider>
 }

@@ -5,8 +5,10 @@ The backend uses TMDB only. `server/env.mjs` reads the root `.env` with Node's n
 ## Endpoints
 
 - `GET /api/health`: provider name and configured boolean only.
-- `GET /api/movies/featured`: weekly trending films, enriched with details, credits, and trailers.
+- `GET /api/movies/featured`: daily trending films in `movies` and a separate five-film now-playing selection in `spotlights`, enriched with details, credits, and trailers.
 - `GET /api/movies/search?q=Inception`: title matches with poster, year, and normalized facts.
+- `GET /api/movies/discover?genres=35&languages=hi&runtime=120&moods=Funny`: live structured discovery. Optional `withoutGenres`, `page`, and `exclude` parameters support exclusions and unique pagination.
+- `GET /api/movies/recommendations?id=27205&aspects=genres,director`: film-specific recommendations or discovery, enforcing every selected similarity aspect. Supports `page` and `exclude`.
 - `GET /api/movies/27205`: one film's normalized details.
 - `GET /api/releases?from=2026-11-01&to=2026-11-30&country=IN&genre=18&language=hi&type=Theatrical`: country-specific release events and separate movie records. Genre, language, and type are optional.
 
@@ -22,7 +24,9 @@ The image configuration supplies the secure CDN base. Missing primary posters tr
 
 ## Search and reliability
 
-Title autocomplete cancels old requests and ignores late results. Structured mood and keyword description filters apply to the fetched collection and explain their metadata basis. There is no claim of AI plot understanding. Similarity compares genres, cast, and directors; unsupported plot-twist controls are omitted.
+Title autocomplete and all submitted searches cancel stale requests and ignore late results after changing filters or tabs. Structured mood and keyword description filters query live discovery rather than the homepage list. Multiple moods and explicit genres use AND matching; selected original languages use OR matching. Runtime filters exclude unknown durations and enforce a strict upper bound. Film-specific recommendations exclude the reference ID; cast and director preferences use discovery and verify actual credits.
+
+Each search request scans at most three source pages and returns `nextPage` or null. Results retain all matching films from scanned pages so the cursor does not skip unseen matches. Duplicate IDs are removed, and the client sends already displayed IDs in `exclude`; no instance-local recommendation history is required. “Show more films” appends unique results, retaining previous results on failure. Daily trends retain real rank; the carousel rotates a separate now-playing pool daily and excludes trending IDs. There is no claim of AI plot understanding.
 
 Backend requests use bounded concurrency, timeouts, cache/deduplication, and rate limiting. Configuration/authorization errors are safe and actionable without echoing credentials. No Wikidata, keyless, or mock fallback exists in production.
 
@@ -30,7 +34,7 @@ References: [authentication](https://developer.themoviedb.org/docs/authenticatio
 
 ## Vercel
 
-The root `api/health.js`, `api/movies/featured.js`, `api/movies/search.js`, `api/movies/[id].js`, and `api/releases.js` files export `server/vercel-handler.mjs`, which invokes the same API handler as the local servers. No listening server runs inside a function. `vercel.json` defines the Vite build, a 60-second function duration, and frontend-only rewrites.
+The root `api/health.js`, `api/movies/featured.js`, `api/movies/search.js`, `api/movies/discover.js`, `api/movies/recommendations.js`, `api/movies/[id].js`, and `api/releases.js` files export `server/vercel-handler.mjs`, which invokes the same API handler as the local servers. No listening server runs inside a function. `vercel.json` defines the Vite build, a 60-second function duration, and frontend-only rewrites.
 
 Set `TMDB_READ_ACCESS_TOKEN` in Vercel’s Production/Preview environment settings and redeploy. The Git-ignored local `.env` is not part of a GitHub deployment. `/api/health` reports configuration without exposing the secret. Deployment-handler tests exercise every entry point without a local `.env`, using environment-only credentials and isolated upstream fixtures. These are local handler checks, not a verification of a hosted deployment.
 

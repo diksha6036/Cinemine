@@ -1,5 +1,6 @@
-import { featuredFilms, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms } from './provider.mjs'
+import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms } from './provider.mjs'
 import { isConfigured } from './env.mjs'
+import { readDiscoveryOptions } from './discovery.mjs'
 
 const windows = new Map()
 function send(response, status, body) {
@@ -24,8 +25,15 @@ export async function handleApi(request, response) {
   windows.set(ip, window && window.until > now ? { ...window, count: window.count + 1 } : { until: now + 60000, count: 1 })
   try {
     if (url.pathname === '/api/health') send(response, 200, { provider: 'TMDB', credentialsRequired: true, configured: isConfigured() })
-    else if (url.pathname === '/api/movies/featured') send(response, 200, { movies: await featuredFilms(), source: 'TMDB', refreshedAt: new Date().toISOString() })
-    else if (url.pathname === '/api/movies/search') {
+    else if (url.pathname === '/api/movies/featured') send(response, 200, { ...await homeFilms(), source: 'TMDB', refreshedAt: new Date().toISOString() })
+    else if (url.pathname === '/api/movies/discover') {
+      const filters = readDiscoveryOptions(url.searchParams, GENRES.map(genre => genre.id))
+      send(response, 200, { ...await discoverFilms(filters), refreshedAt: new Date().toISOString() })
+    } else if (url.pathname === '/api/movies/recommendations') {
+      const options = readDiscoveryOptions(url.searchParams, GENRES.map(genre => genre.id), true)
+      const { movies, reference, nextPage } = await similarFilms(options)
+      send(response, 200, { results: movies.map(movie => ({ movie, reason: recommendationReason(movie, reference) })), nextPage })
+    } else if (url.pathname === '/api/movies/search') {
       const query = (url.searchParams.get('q') ?? '').trim()
       if (query.length < 2 || query.length > 120) send(response, 400, { error: 'Enter a movie title between 2 and 120 characters.' })
       else send(response, 200, { movies: await searchFilms(query), source: 'TMDB', refreshedAt: new Date().toISOString() })
@@ -38,6 +46,6 @@ export async function handleApi(request, response) {
       if (!validDate(from) || !validDate(to) || from > to || (Date.parse(to) - Date.parse(from)) / 86400000 > 62 || !['IN', 'US', 'GB', 'CA', 'AU'].includes(country) || (genre && !GENRES.some(option => String(option.id) === genre)) || (language && !/^[a-z]{2}$/.test(language)) || (releaseType && !Object.values(RELEASE_TYPES).includes(releaseType))) send(response, 400, { error: 'Choose a valid date range of at most 62 days, country, and filters.' })
       else send(response, 200, await releaseCalendar({ from, to, country, genre, language, releaseType }))
     } else send(response, 404, { error: 'This API endpoint does not exist.' })
-  } catch (error) { send(response, [404, 503].includes(error?.status) ? error.status : 502, { error: error?.name === 'TimeoutError' ? 'The movie service took too long to respond. Please retry.' : error instanceof Error ? error.message : 'The movie service is unavailable. Please retry.' }) }
+  } catch (error) { send(response, [400, 404, 503].includes(error?.status) ? error.status : 502, { error: error?.name === 'TimeoutError' ? 'The movie service took too long to respond. Please retry.' : error instanceof Error ? error.message : 'The movie service is unavailable. Please retry.' }) }
   return true
 }
