@@ -2,7 +2,7 @@
 
 A cinematic movie-discovery website with a featured-film slider, real movie posters, title search, mood and preference filters, film details, and a regional release calendar. The original cream-and-orange design is preserved. No account, sign-in, or sign-up is required for visitors.
 
-The backend uses TMDB with credentials from a local `.env` file. Wikidata and other unauthenticated movie-data fallbacks have been removed.
+The backend uses TMDB with credentials from a local `.env` file. Wikidata and other unauthenticated movie-data fallbacks have been removed. A small footer Credits link opens `/credits`, with the official TMDB logo, its required API notice, and JustWatch streaming-data attribution.
 
 ## Local setup
 

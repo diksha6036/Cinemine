@@ -13,12 +13,14 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
   const isCalendar = path === '/calendar'
   const isDirectory = path === '/sitemap'
   const isWatchSearch = path === '/where-to-watch'
-  const missing = status === 404 || (!isMovie && !isCalendar && !isDirectory && !isWatchSearch && path !== '/')
+  const isCredits = path === '/credits'
+  const missing = status === 404 || (!isMovie && !isCalendar && !isDirectory && !isWatchSearch && !isCredits && path !== '/')
   let title = 'Cinemine | Discover Movies & Plan Your Next Movie Night'
   let description = HOME_DESCRIPTION
   if (isCalendar) { title = 'Movie Release Calendar | Cinemine'; description = 'Explore movie release dates by country, genre, language, and release format. Plan your next cinema visit or movie night with Cinemine.' }
   if (isDirectory) { title = 'Sitemap | Explore Cinemine'; description = 'Browse Cinemine’s movie pages, trending films, and regional release calendar from one simple site directory.' }
   if (isWatchSearch) { title = 'Where to Watch Movies by Country | Cinemine'; description = 'Search for a movie, choose your country, and see its streaming platforms with provider names and logos on Cinemine.' }
+  if (isCredits) { title = 'Credits | Cinemine'; description = 'Credits for TMDB movie information and artwork, and JustWatch streaming availability used by Cinemine.' }
   if (isMovie) {
     title = movie ? `${movie.title}${movie.releaseYear ? ` (${movie.releaseYear})` : ''} | Cinemine` : 'Movie Details | Cinemine'
     description = movie ? `${movie.shortDescription} Explore ${movie.title}'s genres, runtime, director, and trailer on Cinemine.` : 'Explore film details, genres, runtimes, directors, and trailers with Cinemine.'

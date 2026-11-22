@@ -54,7 +54,7 @@ export async function renderDocument(request, options = {}) {
       const [movie] = await getFilms([pathname.split('/').at(-1)])
       if (movie) page.movie = movie
       else { page.status = 404; page.error = 'This film could not be found.' }
-    } else if (!['/calendar', '/where-to-watch'].includes(pathname)) page.status = 404
+    } else if (!['/calendar', '/where-to-watch', '/credits'].includes(pathname)) page.status = 404
   } catch (error) {
     page.status = error?.status === 404 ? 404 : 503
     page.error = page.status === 404 ? 'This film could not be found.' : 'Film information is temporarily unavailable. Please try again.'

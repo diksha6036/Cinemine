@@ -25,7 +25,7 @@
       "status": 308
     },
     {
-      "src": "^/(calendar|sitemap|where-to-watch)/?$",
+      "src": "^/(calendar|sitemap|where-to-watch|credits)/?$",
       "dest": "/api/pages?_path=/$1"
     },
     {

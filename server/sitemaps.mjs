@@ -1,6 +1,6 @@
 import { escapeHtml } from '../shared/seo.mjs'
 
-export const PAGE_PATHS = ['/', '/calendar', '/where-to-watch', '/sitemap']
+export const PAGE_PATHS = ['/', '/calendar', '/where-to-watch', '/credits', '/sitemap']
 export const CRAWLER_PATHS = ['/robots.txt', '/sitemap.xml', '/sitemap-pages.xml', '/sitemap-movies.xml']
 export const isCrawlerPath = pathname => CRAWLER_PATHS.includes(pathname)
 const declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'

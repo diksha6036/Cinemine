@@ -9,6 +9,7 @@ import './styles/buddy.css'
 import './styles/polish.css'
 import './styles/directory.css'
 import './styles/mobile-home.css'
+import './styles/credits.css'
 import { PageDataContext } from './app/PageData'
 
 const page = window.__CINEMINE_PAGE__
