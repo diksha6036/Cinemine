@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import { Navbar } from "../components/layout/Navbar";
 import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
@@ -8,6 +9,7 @@ import { RouteMetadata } from '../components/seo/PageMetadata';
 import { PageProgress } from '../components/ui/PageProgress';
 
 export function App() {
+  const { t } = useI18n()
   const location = useLocation();
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -21,8 +23,7 @@ export function App() {
       <RouteMetadata />
       <PageProgress />
       <a className="skip-link" href="#main-content">
-        Skip to content
-      </a>
+        {t("Skip to content")}</a>
       <Navbar />
       <div className="app-content"><Outlet /></div>
       <PopcornBuddy />

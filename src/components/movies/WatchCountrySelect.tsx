@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/LanguageProvider'
 import { useEffect, useId, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { api } from '../../lib/api'
@@ -14,11 +15,8 @@ function loadCountries() {
   return pending
 }
 
-function watchCountryName(code: string) {
-  return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) ?? code
-}
-
 export function WatchCountrySelect({ value, onChange, hideLabel = false }: { value: string; onChange: (code: string) => void; hideLabel?: boolean }) {
+  const { t, countryName, language } = useI18n()
   const id = useId()
   const [countries, setCountries] = useState<WatchCountry[]>(cached?.countries ?? [])
   const [loading, setLoading] = useState(true)
@@ -35,12 +33,12 @@ export function WatchCountrySelect({ value, onChange, hideLabel = false }: { val
   }, [retry])
 
   return <div className="watch-country-field">
-    <label htmlFor={id} className={hideLabel ? 'sr-only' : undefined}>Country</label>
+    <label htmlFor={id} className={hideLabel ? 'sr-only' : undefined}>{t("Country")}</label>
     <div className="watch-country-input"><select id={id} value={value} disabled={loading || error} aria-describedby={loading || error ? `${id}-status` : undefined} onChange={event => onChange(event.target.value)}>
-      {!countries.some(country => country.code === value) && <option value={value}>{watchCountryName(value)}</option>}
-      {countries.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}
+      {!countries.some(country => country.code === value) && <option value={value}>{countryName(value)}</option>}
+      {[...countries].sort((a, b) => countryName(a.code).localeCompare(countryName(b.code), language.locale)).map(country => <option key={country.code} value={country.code}>{countryName(country.code)}</option>)}
     </select><ChevronDown size={16} aria-hidden="true" /></div>
-    {loading && <p id={`${id}-status`} className="watch-country-status" role="status">Loading countries…</p>}
-    {error && <p id={`${id}-status`} className="watch-country-status" role="status">Couldn’t load countries. <button type="button" className="text-button" onClick={() => setRetry(value => value + 1)}>Retry countries</button></p>}
+    {loading && <p id={`${id}-status`} className="watch-country-status" role="status">{t("Loading countries…")}</p>}
+    {error && <p id={`${id}-status`} className="watch-country-status" role="status">{t("Couldn’t load countries.")} <button type="button" className="text-button" onClick={() => setRetry(value => value + 1)}>{t("Retry countries")}</button></p>}
   </div>
 }

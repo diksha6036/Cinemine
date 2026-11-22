@@ -13,9 +13,11 @@ import './styles/mobile-navigation.css'
 import './styles/credits.css'
 import './styles/titles.css'
 import { PageDataContext } from './app/PageData'
+import { LanguageProvider } from './i18n/LanguageProvider'
+import './styles/languages.css'
 
 const page = window.__CINEMINE_PAGE__
-const application = <StrictMode><PageDataContext.Provider value={page ?? { pathname: location.pathname, origin: location.origin, status: 200 }}><RouterProvider router={router} /></PageDataContext.Provider></StrictMode>
+const application = <StrictMode><PageDataContext.Provider value={page ?? { pathname: location.pathname, origin: location.origin, status: 200 }}><LanguageProvider><RouterProvider router={router} /></LanguageProvider></PageDataContext.Provider></StrictMode>
 const root = document.getElementById('root')!
 if (page) hydrateRoot(root, application)
 else createRoot(root).render(application)

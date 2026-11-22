@@ -12,6 +12,7 @@
     "start": "node server/start.mjs",
     "test:api": "node --test tests/provider.test.mjs",
     "test:titles": "node --test tests/titles.test.mjs",
+    "test:languages": "node --test tests/languages.test.mjs",
     "test:seo": "node --test tests/seo.test.mjs"
   },
   "dependencies": {

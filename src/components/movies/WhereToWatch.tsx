@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/LanguageProvider'
 import { useEffect, useId, useState } from 'react'
 import { CircleAlert, MonitorPlay } from 'lucide-react'
 import { api } from '../../lib/api'
@@ -16,13 +17,14 @@ export function WhereToWatch(props: WhereToWatchProps) {
 }
 
 function WatchAvailabilityPanel({ movieId, mediaType = 'movie', countryCode: initialCountryCode = 'IN', headingLevel: Heading = 'h2', showCountrySelector = true }: WhereToWatchProps) {
+  const { t, countryName: localizedCountryName } = useI18n()
   const titleId = useId()
   const [countryCode, setCountryCode] = useState(initialCountryCode)
   const [result, setResult] = useState<{ key: string; data?: WatchAvailability; error?: string } | null>(null)
   const [retry, setRetry] = useState(0)
   const requestKey = `${mediaType}:${movieId}:${countryCode}:${retry}`
   const current = result?.key === requestKey ? result : null
-  const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) ?? countryCode
+  const countryName = localizedCountryName(countryCode)
   const providers = (current?.data?.groups.flatMap(group => group.providers) ?? []).filter((provider, index, all) => all.findIndex(entry => entry.id === provider.id) === index)
 
   useEffect(() => {
@@ -36,12 +38,12 @@ function WatchAvailabilityPanel({ movieId, mediaType = 'movie', countryCode: ini
   }, [movieId, mediaType, countryCode, requestKey])
 
   return <div className="watch-availability"><section className="where-to-watch" aria-labelledby={titleId}>
-    <div className={`watch-heading${showCountrySelector ? ' watch-heading-with-country' : ''}`}><Heading id={titleId}>Where to watch</Heading>{showCountrySelector ? <WatchCountrySelect value={countryCode} onChange={setCountryCode} hideLabel /> : <span>In {countryName}</span>}</div>
-    {!current ? <div className="watch-state" role="status"><span className="loading-orbit" aria-hidden="true" /><p className="watch-state-description">Checking availability in {countryName}…</p></div> : current.error ? <div className="watch-state" role="status"><CircleAlert size={24} strokeWidth={1.5} aria-hidden="true" /><p className="watch-state-title">Couldn’t load availability</p><p className="watch-state-description">Please try again in a moment.</p><button className="feature-button" type="button" onClick={() => setRetry(value => value + 1)}>Retry</button></div> : current.data && <>
+    <div className={`watch-heading${showCountrySelector ? ' watch-heading-with-country' : ''}`}><Heading id={titleId}>{t("Where to watch")}</Heading>{showCountrySelector ? <WatchCountrySelect value={countryCode} onChange={setCountryCode} hideLabel /> : <span>{t('In {country}', { country: countryName })}</span>}</div>
+    {!current ? <div className="watch-state" role="status"><span className="loading-orbit" aria-hidden="true" /><p className="watch-state-description">{t('Checking availability in {country}…', { country: countryName })}</p></div> : current.error ? <div className="watch-state" role="status"><CircleAlert size={24} strokeWidth={1.5} aria-hidden="true" /><p className="watch-state-title">{t("Couldn’t load availability")}</p><p className="watch-state-description">{t("Please try again in a moment.")}</p><button className="feature-button" type="button" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</button></div> : current.data && <>
       {providers.length ? <ul className="watch-providers">{providers.map(provider => <li className="watch-provider" key={provider.id}>
           {provider.logoUrl && <img src={provider.logoUrl} alt="" width="32" height="32" loading="lazy" onError={event => { event.currentTarget.hidden = true }} />}
           <span>{provider.name}</span>
-        </li>)}</ul> : <div className="watch-state" role="status"><MonitorPlay size={24} strokeWidth={1.5} aria-hidden="true" /><p className="watch-state-title">No platforms listed yet</p><p className="watch-state-description">No streaming information for {countryName}. Try another country.</p></div>}
+        </li>)}</ul> : <div className="watch-state" role="status"><MonitorPlay size={24} strokeWidth={1.5} aria-hidden="true" /><p className="watch-state-title">{t("No platforms listed yet")}</p><p className="watch-state-description">{t('No streaming information for {country}. Try another country.', { country: countryName })}</p></div>}
     </>}
   </section></div>
 }

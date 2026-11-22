@@ -36,6 +36,7 @@ npm run lint
 npm run test:dates
 npm run test:api
 npm run test:titles
+npm run test:languages
 npm run test:seo
 npm run build
 npm run preview
@@ -89,13 +90,14 @@ The popcorn buddy offers real surprise films, another pick without repeats in it
 ## What works
 
 - The Cinemine homepage: Cinemine logo and lowercase wordmark on the left, navigation at the top, a large upright CinePick poster slider, and trending movie cards.
-- On phones (up to 760 px), a visible sticky tab navigation opens separate pages for Explore, Find a film (`/find-my-movie`), Where to watch, and Calendar. Each page shows its own feature, with one main landmark and one footer. Mobile search opens the full movie finder page; desktop keeps its search dialog. The homepage contains CinePicks and trending films. Older scrolling-section URLs redirect to the corresponding feature pages.
+- On phones and tablets (up to 1400 px, including landscape tablets), a visible sticky tab navigation opens separate pages for Explore, Find a film (`/find-my-movie`), Where to watch, and Calendar. Each page shows its own feature, with one main landmark and one footer. Phone and tablet search opens the full movie finder page; larger desktop layouts keep their search dialog. Compact layouts have no menu button, sidebar, or navigation drawer. The homepage contains CinePicks and trending films. Older scrolling-section URLs redirect to the corresponding feature pages.
 - Cream typography, burnt-orange accents, charcoal backgrounds, and restrained cool tones in the slider. No sidebar, rotating gradient poster substitutes, account buttons, or work-in-progress controls.
 - The provided `public/images/cinemine-logo.jpg` is used in the header, browser favicon, and Apple touch icon.
 - Slider arrows, selection dots, horizontal swipe, and keyboard arrows/Home/End. Artwork stays upright and uncropped. Slides do not autoplay, so visitors can read the synopsis.
 - Real poster and backdrop URLs mapped from TMDB. When a primary poster is missing, the server checks TMDB’s alternate posters across languages. Missing/broken posters have an accessible fallback without inventing artwork or hiding real releases. Posters below the fold lazy-load with reserved aspect ratios.
 - Trending today uses TMDB's combined daily trends, with All / Movies / Series filters and up to 20 unique titles in source rank. View all expands the collection. The carousel uses a separate India now-playing movie pool, excludes the typed trending identities, and rotates its five-film selection each day in India.
 - Small additions: keyboard search with Cmd/Ctrl+K, movie-sharing with native share/copy/manual-link fallbacks, a reading-progress line and adaptive back-to-top control, and poster hover/focus hints.
+- The header language switcher offers English, Hindi, Spanish, French, German, Portuguese, Arabic, Japanese, Korean, and Simplified Chinese. The choice is saved in a one-year first-party cookie and applied to navigation, search, filters, detail labels, country/language names, and calendar dates. Arabic uses right-to-left layout. Switching navigates to the same page with `?locale=...` so translated server data and the interface start together; temporary form state resets. Original-language and streaming-country filters remain separate from website language.
 - Title search and Where to watch default to All, with Movies and Series filters. Combined search filters out people and keeps movies and series with the same numeric TMDB ID separate. Source pagination is available in search results. Autocomplete supports keyboard selection and cancels stale requests. Desktop opens a shared search dialog; mobile opens the dedicated finder page.
 - Mood and description searches query the live discovery API across movies and series, with genre, excluded genre, original-language, and strict runtime filters (episode runtime for series). All selected moods must match; moods remain genre-derived and description input uses explicit keywords. Similar-film searches use movie-specific recommendations or discovery for shared cast/directors, then verify selected facts and exclude the reference title including its type. Show more titles follows source pages and excludes already shown IDs. No requirements are silently relaxed.
 - Search state is retained per tab while open. Movie previews replace the dialog contents, with Back to results. Focus trapping, Escape, visible close controls, and trigger restoration are supported.
@@ -105,6 +107,8 @@ The popcorn buddy offers real surprise films, another pick without repeats in it
 - Calendar cells show at most two entries with a `+N more` day-details action. Clicking a film opens its regional release preview.
 
 ## Data accuracy and API behaviour
+
+Every API accepts a validated `locale` display-language parameter (or the saved language cookie). Metadata endpoints request the corresponding TMDB translation, with per-request language context and separate normalized caches. Missing translated overviews, season synopses, and trailers fall back to English when available; names may remain in the original language, and platform/person names remain source-provided. Description searches recognize the offered languages’ genre labels, original-language names, negation templates, and the displayed numeric runtime examples; they remain keyword matching rather than plot understanding. Gregorian release dates are preserved in every display language. SSR embeds language-name snapshots to avoid Node/browser ICU differences and sends private, non-cacheable HTML to avoid sharing cookie-specific languages.
 
 Movie records and release events are separate. The calendar paginates TMDB discovery, then retrieves each movie's regional release-date records with bounded concurrency. It matches the selected country's entries and release types instead of relabelling a global primary date. Exact duplicates are removed by movie/country/type/date, while separate theatrical and digital releases remain distinct.
 

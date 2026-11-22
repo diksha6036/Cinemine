@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
 import { readServerConfig } from './env.mjs'
 import { MOODS, matchesFilters, matchesSimilarity, similarityFacts, uniqueMovies } from './discovery.mjs'
+import { currentLanguage, localizedKey, withLanguage } from './language.mjs'
+import { translate } from '../shared/translations.mjs'
 
 const API = 'https://api.themoviedb.org/3'
 const TTL = 5 * 60 * 1000
@@ -21,6 +23,7 @@ function configuration() {
 }
 
 export async function tmdb(path, parameters = {}) {
+  if (parameters.language && path !== '/search/keyword') parameters = { ...parameters, language: currentLanguage().tmdb }
   const config = configuration()
   const cacheKey = `${state.scope}:${path}?${new URLSearchParams(parameters)}`
   const cached = state.requests.get(cacheKey)
@@ -121,14 +124,30 @@ async function imagesConfiguration() {
   const base = data.images?.secure_base_url
   return { base: typeof base === 'string' && base === 'https://image.tmdb.org/t/p/' ? base : 'https://image.tmdb.org/t/p/' }
 }
+async function localizedDetails(path, append) {
+  const record = await tmdb(path, { language: 'en-US', append_to_response: append })
+  if (record.adult || currentLanguage().code === 'en') return record
+  if (!record.overview?.trim() || !record.videos?.results?.length || record.seasons?.some(season => !season.overview?.trim())) {
+    try {
+      const fallback = await withLanguage('en', () => tmdb(path, { language: 'en-US', append_to_response: append }))
+      if (!record.overview?.trim()) record.overview = fallback.overview
+      if (!record.videos?.results?.length) record.videos = fallback.videos
+      if (record.seasons) record.seasons = record.seasons.map(season => {
+        const original = fallback.seasons?.find(item => item.id === season.id)
+        return { ...season, overview: season.overview?.trim() ? season.overview : original?.overview || '' }
+      })
+    } catch { /* A missing fallback must not discard a valid localized record. */ }
+  }
+  return record
+}
 export async function getFilms(ids) {
   configuration()
   const valid = [...new Set(ids.map(String))].filter(id => /^[1-9]\d*$/.test(id))
-  const missing = valid.filter(id => !state.movies.has(id) || state.movies.get(id).expires <= Date.now())
+  const missing = valid.filter(id => !state.movies.has(localizedKey(id)) || state.movies.get(localizedKey(id)).expires <= Date.now())
   if (missing.length) {
     const images = await imagesConfiguration()
     const results = await mapBounded(missing, async id => {
-      const record = await tmdb(`/movie/${id}`, { language: 'en-US', append_to_response: 'credits,videos,release_dates' })
+      const record = await localizedDetails(`/movie/${id}`, 'credits,videos,release_dates')
       if (record.adult) return null
       // A translated detail record can lack a primary poster. Look for genuine
       // posters across languages before declaring the artwork unavailable.
@@ -138,33 +157,33 @@ export async function getFilms(ids) {
       }
       const movie = normalizeFilm(record, images)
       if (state.movies.size >= 1000) state.movies.delete(state.movies.keys().next().value)
-      state.movies.set(id, { movie, releaseDates: record.release_dates, expires: Date.now() + TTL })
+      state.movies.set(localizedKey(id), { movie, releaseDates: record.release_dates, expires: Date.now() + TTL })
       return movie
     })
     if (results.every(result => !result.ok)) throw results[0].error
   }
-  return valid.flatMap(id => state.movies.get(id)?.expires > Date.now() ? [state.movies.get(id).movie] : [])
+  return valid.flatMap(id => state.movies.get(localizedKey(id))?.expires > Date.now() ? [state.movies.get(localizedKey(id)).movie] : [])
 }
 export async function getSeries(ids) {
   configuration()
   const valid = [...new Set(ids.map(String))].filter(id => /^[1-9]\d*$/.test(id))
-  const missing = valid.filter(id => !state.movies.has(`tv:${id}`) || state.movies.get(`tv:${id}`).expires <= Date.now())
+  const missing = valid.filter(id => !state.movies.has(localizedKey(`tv:${id}`)) || state.movies.get(localizedKey(`tv:${id}`)).expires <= Date.now())
   if (missing.length) {
     const images = await imagesConfiguration()
     const results = await mapBounded(missing, async id => {
-      const record = await tmdb(`/tv/${id}`, { language: 'en-US', append_to_response: 'aggregate_credits,videos,keywords' })
+      const record = await localizedDetails(`/tv/${id}`, 'aggregate_credits,videos,keywords')
       if (record.adult) return null
       if (!imageUrl(record.poster_path)) {
         try { record.images = await tmdb(`/tv/${id}/images`) } catch { /* Preserve real titles even without artwork. */ }
       }
       const movie = normalizeSeries(record, images)
       if (state.movies.size >= 1000) state.movies.delete(state.movies.keys().next().value)
-      state.movies.set(`tv:${id}`, { movie, expires: Date.now() + TTL })
+      state.movies.set(localizedKey(`tv:${id}`), { movie, expires: Date.now() + TTL })
       return movie
     })
     if (results.every(result => !result.ok)) throw results[0].error
   }
-  return valid.flatMap(id => state.movies.get(`tv:${id}`)?.expires > Date.now() ? [state.movies.get(`tv:${id}`).movie] : [])
+  return valid.flatMap(id => state.movies.get(localizedKey(`tv:${id}`))?.expires > Date.now() ? [state.movies.get(localizedKey(`tv:${id}`)).movie] : [])
 }
 export async function featuredFilms() {
   const data = await tmdb('/trending/movie/day', { language: 'en-US' })
@@ -242,7 +261,8 @@ export async function similarFilms({ id, aspects = [], page = 1, exclude = [] })
 }
 export function recommendationReason(movie, reference) {
   const facts = similarityFacts(movie, reference)
-  return [facts.genres.length ? `Shared genres: ${movie.genres.filter((_, index) => facts.genres.includes(movie.genreIds[index])).join(', ')}.` : '', facts.cast ? 'Shares cast members.' : '', facts.director ? 'Shares a director or creator.' : ''].filter(Boolean).join(' ') || 'Recommended from the reference title.'
+  const t = (key, values) => translate(currentLanguage().code, key, values)
+  return [facts.genres.length ? t('Shared genres: {genres}.', { genres: movie.genres.filter((_, index) => facts.genres.includes(movie.genreIds[index])).join(', ') }) : '', facts.cast ? t('Shares cast members.') : '', facts.director ? t('Shares a director or creator.') : ''].filter(Boolean).join(' ') || t('Recommended from the reference title.')
 }
 export async function searchFilms(query) {
   const data = await tmdb('/search/movie', { query, language: 'en-US', include_adult: 'false', page: '1' })
@@ -300,7 +320,7 @@ export async function releaseCalendar({ from, to, country, genre = '', language 
   const ids = [...new Set(candidates.filter(record => !record.adult).map(record => String(record.id)))]
   const movies = await getFilms(ids)
   const movieMap = new Map(movies.map(movie => [movie.id, movie]))
-  const dates = await mapBounded(movies, async movie => publicationEvents(state.movies.get(movie.id)?.releaseDates ?? await tmdb(`/movie/${movie.id}/release_dates`), movie, country, from, to, releaseType))
+  const dates = await mapBounded(movies, async movie => publicationEvents(state.movies.get(localizedKey(movie.id))?.releaseDates ?? await tmdb(`/movie/${movie.id}/release_dates`), movie, country, from, to, releaseType))
   const events = dates.filter(result => result.ok).flatMap(result => result.value)
   const failed = pages.some(page => !page.ok) || dates.some(result => !result.ok) || movies.length < ids.length
   const partial = totalPages > lastPage || failed

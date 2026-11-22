@@ -1,0 +1,115 @@
+export const secondaryRows = `
+Drama¦ड्रामा¦Drama¦Drame¦Drama¦Drama¦دراما¦ドラマ¦드라마¦剧情
+Romance¦प्रेमकथा¦Romance¦Romance¦Romantik¦Romance¦رومانسية¦ロマンス¦로맨스¦爱情
+Thriller¦थ्रिलर¦Suspense¦Thriller¦Thriller¦Suspense¦إثارة¦スリラー¦스릴러¦惊悚
+Adventure¦साहसिक¦Aventura¦Aventure¦Abenteuer¦Aventura¦مغامرة¦アドベンチャー¦모험¦冒险
+Sci-fi¦विज्ञान-कथा¦Ciencia ficción¦Science-fiction¦Science-Fiction¦Ficção científica¦خيال علمي¦SF¦SF¦科幻
+Comedy¦कॉमेडी¦Comedia¦Comédie¦Komödie¦Comédia¦كوميديا¦コメディ¦코미디¦喜剧
+Horror¦डरावनी¦Terror¦Horreur¦Horror¦Terror¦رعب¦ホラー¦공포¦恐怖
+Animation¦ऐनिमेशन¦Animación¦Animation¦Animation¦Animação¦رسوم متحركة¦アニメーション¦애니메이션¦动画
+Mystery¦रहस्य¦Misterio¦Mystère¦Mystery¦Mistério¦غموض¦ミステリー¦미스터리¦悬疑
+Fantasy¦फैंटेसी¦Fantasía¦Fantastique¦Fantasy¦Fantasia¦فانتازيا¦ファンタジー¦판타지¦奇幻
+Action¦ऐक्शन¦Acción¦Action¦Action¦Ação¦أكشن¦アクション¦액션¦动作
+Crime¦अपराध¦Crimen¦Crime¦Krimi¦Crime¦جريمة¦犯罪¦범죄¦犯罪
+Documentary¦डॉक्यूमेंट्री¦Documental¦Documentaire¦Dokumentarfilm¦Documentário¦وثائقي¦ドキュメンタリー¦다큐멘터리¦纪录
+Family¦पारिवारिक¦Familia¦Famille¦Familie¦Família¦عائلي¦ファミリー¦가족¦家庭
+History¦इतिहास¦Historia¦Histoire¦Historie¦História¦تاريخ¦歴史¦역사¦历史
+Music¦संगीत¦Música¦Musique¦Musik¦Música¦موسيقى¦音楽¦음악¦音乐
+War¦युद्ध¦Guerra¦Guerre¦Krieg¦Guerra¦حرب¦戦争¦전쟁¦战争
+Western¦वेस्टर्न¦Wéstern¦Western¦Western¦Faroeste¦غرب أمريكي¦西部劇¦서부¦西部
+TV Movie¦टीवी फ़िल्म¦Película de TV¦Téléfilm¦Fernsehfilm¦Filme para TV¦فيلم تلفزيوني¦テレビ映画¦TV 영화¦电视电影
+Action & Adventure¦ऐक्शन और साहसिक¦Acción y aventura¦Action et aventure¦Action und Abenteuer¦Ação e aventura¦أكشن ومغامرة¦アクション・アドベンチャー¦액션 및 모험¦动作冒险
+Kids¦बच्चों के लिए¦Infantil¦Enfants¦Kinder¦Infantil¦أطفال¦キッズ¦어린이¦儿童
+News¦समाचार¦Noticias¦Actualités¦Nachrichten¦Notícias¦أخبار¦ニュース¦뉴스¦新闻
+Reality¦रियलिटी¦Reality¦Télé-réalité¦Reality¦Reality show¦تلفزيون الواقع¦リアリティ¦리얼리티¦真人秀
+Sci-Fi & Fantasy¦विज्ञान-कथा और फैंटेसी¦Ciencia ficción y fantasía¦Science-fiction et fantastique¦Science-Fiction und Fantasy¦Ficção científica e fantasia¦خيال علمي وفانتازيا¦SF・ファンタジー¦SF 및 판타지¦科幻奇幻
+Soap¦धारावाहिक¦Telenovela¦Feuilleton¦Seifenoper¦Novela¦مسلسل طويل¦ソープオペラ¦연속극¦肥皂剧
+Talk¦टॉक शो¦Entrevistas¦Talk-show¦Talkshow¦Programa de entrevistas¦حواري¦トークショー¦토크쇼¦脱口秀
+War & Politics¦युद्ध और राजनीति¦Guerra y política¦Guerre et politique¦Krieg und Politik¦Guerra e política¦حرب وسياسة¦戦争・政治¦전쟁 및 정치¦战争政治
+Premiere¦प्रीमियर¦Preestreno¦Avant-première¦Premiere¦Estreia especial¦عرض أول¦プレミア¦프리미어¦首映
+Limited theatrical¦सीमित सिनेमाघरों में¦Estreno limitado¦Sortie limitée¦Begrenzter Kinostart¦Estreia limitada¦عرض سينمائي محدود¦限定公開¦제한 상영¦限量上映
+Theatrical¦सिनेमाघरों में¦En cines¦Au cinéma¦Kino¦Nos cinemas¦في السينما¦劇場公開¦극장 개봉¦院线上映
+Digital¦डिजिटल¦Digital¦Numérique¦Digital¦Digital¦رقمي¦デジタル配信¦디지털¦数字发行
+Physical¦भौतिक रिलीज़¦Formato físico¦Support physique¦Physischer Datenträger¦Mídia física¦وسائط مادية¦ディスク発売¦실물 매체¦实体发行
+TV¦टीवी¦TV¦TV¦TV¦TV¦تلفزيون¦テレビ¦TV¦电视
+Month¦महीना¦Mes¦Mois¦Monat¦Mês¦شهر¦月¦월¦月
+List¦सूची¦Lista¦Liste¦Liste¦Lista¦قائمة¦リスト¦목록¦列表
+Today¦आज¦Hoy¦Aujourd’hui¦Heute¦Hoje¦اليوم¦今日¦오늘¦今天
+Previous month¦पिछला महीना¦Mes anterior¦Mois précédent¦Vorheriger Monat¦Mês anterior¦الشهر السابق¦前の月¦이전 달¦上个月
+Next month¦अगला महीना¦Mes siguiente¦Mois suivant¦Nächster Monat¦Próximo mês¦الشهر التالي¦次の月¦다음 달¦下个月
+Refresh dates¦तारीखें रीफ़्रेश करें¦Actualizar fechas¦Actualiser les dates¦Termine aktualisieren¦Atualizar datas¦تحديث المواعيد¦日程を更新¦일정 새로고침¦刷新日期
+Updated¦अपडेट किया गया¦Actualizado¦Mis à jour¦Aktualisiert¦Atualizado¦آخر تحديث¦更新¦업데이트¦更新于
+Release type¦रिलीज़ का प्रकार¦Tipo de estreno¦Type de sortie¦Veröffentlichungsart¦Tipo de lançamento¦نوع الإصدار¦公開形式¦공개 유형¦发行类型
+All types¦सभी प्रकार¦Todos los tipos¦Tous les types¦Alle Arten¦Todos os tipos¦كل الأنواع¦すべての形式¦모든 유형¦全部形式
+Filter this collection¦इस सूची में खोजें¦Filtrar esta colección¦Filtrer cette liste¦Diese Liste filtern¦Filtrar esta coleção¦تصفية هذه المجموعة¦この一覧を絞り込む¦목록 필터링¦筛选列表
+Search displayed releases…¦दिखाई गई रिलीज़ खोजें…¦Buscar estrenos mostrados…¦Rechercher dans les sorties…¦Angezeigte Titel suchen…¦Buscar lançamentos exibidos…¦ابحث في الإصدارات المعروضة…¦表示中の作品を検索…¦표시된 공개작 검색…¦搜索已显示的作品…
+Clear filters¦फ़िल्टर हटाएँ¦Borrar filtros¦Effacer les filtres¦Filter zurücksetzen¦Limpar filtros¦مسح عوامل التصفية¦絞り込みを解除¦필터 지우기¦清除筛选
+No releases match¦कोई रिलीज़ नहीं मिली¦No hay estrenos coincidentes¦Aucune sortie correspondante¦Keine passenden Veröffentlichungen¦Nenhum lançamento encontrado¦لا توجد إصدارات مطابقة¦該当する公開作品はありません¦일치하는 공개작 없음¦没有匹配的上映作品
+Try another month or country to explore more releases.¦और रिलीज़ देखने के लिए दूसरा महीना या देश चुनें।¦Prueba otro mes o país para ver más estrenos.¦Essayez un autre mois ou pays pour voir d’autres sorties.¦Wähle einen anderen Monat oder ein anderes Land.¦Tente outro mês ou país para ver mais lançamentos.¦جرّب شهرًا أو بلدًا آخر لاستكشاف المزيد.¦別の月や国を選んでお試しください。¦다른 달이나 국가를 선택해 보세요.¦请选择其他月份或国家，查看更多作品。
+Try clearing a filter. Your preferences have not been changed.¦कोई फ़िल्टर हटाकर देखें। आपकी पसंद नहीं बदली गई है।¦Prueba a quitar un filtro. No se han cambiado tus preferencias.¦Essayez de retirer un filtre. Vos préférences n’ont pas changé.¦Entferne einen Filter. Deine Auswahl wurde nicht verändert.¦Tente remover um filtro. Suas preferências não foram alteradas.¦جرّب إزالة أحد المرشحات. لم نغير تفضيلاتك.¦条件を減らしてみてください。設定は変更していません。¦필터를 해제해 보세요. 설정은 변경되지 않았습니다.¦请尝试移除筛选条件。你的偏好未被更改。
+No releases match your filters for this date.¦इस तारीख पर फ़िल्टर से मेल खाती कोई रिलीज़ नहीं है।¦No hay estrenos para esta fecha con estos filtros.¦Aucune sortie ne correspond à cette date.¦Keine passenden Veröffentlichungen an diesem Tag.¦Nenhum lançamento nesta data corresponde aos filtros.¦لا توجد إصدارات تطابق مرشحاتك لهذا التاريخ.¦この日付で条件に合う作品はありません。¦이 날짜에 필터와 일치하는 공개작이 없습니다.¦该日期没有符合筛选条件的作品。
+Still to come this month¦इस महीने आने वाली रिलीज़¦Aún por estrenar este mes¦À venir ce mois-ci¦Noch diesen Monat¦Ainda este mês¦قادم هذا الشهر¦今月これからの公開¦이번 달 공개 예정¦本月即将上映
+No upcoming releases match this view.¦इस सूची में कोई आने वाली रिलीज़ नहीं है।¦No hay próximos estrenos en esta vista.¦Aucune sortie à venir dans cette vue.¦Keine kommenden Veröffentlichungen in dieser Ansicht.¦Nenhum lançamento futuro nesta visualização.¦لا توجد إصدارات قادمة في هذا العرض.¦該当する今後の公開予定はありません。¦현재 보기에 예정된 공개작이 없습니다.¦当前列表暂无即将上映的作品。
+Date to be announced¦तारीख की घोषणा बाकी है¦Fecha por anunciar¦Date à annoncer¦Termin wird angekündigt¦Data a anunciar¦سيُعلن الموعد لاحقًا¦日程未定¦날짜 미정¦日期待定
+No undated releases reported.¦बिना तारीख वाली कोई रिलीज़ दर्ज नहीं है।¦No hay estrenos sin fecha.¦Aucune sortie sans date annoncée.¦Keine Veröffentlichungen ohne Termin gemeldet.¦Nenhum lançamento sem data informado.¦لا توجد إصدارات دون موعد.¦日程未定の作品はありません。¦날짜 미정인 공개작이 없습니다.¦暂无日期待定的作品。
+Undated releases for your country and active filters, independent of the month.¦आपके देश और फ़िल्टर के अनुसार बिना तारीख वाली रिलीज़, महीने से अलग।¦Estrenos sin fecha para tu país y filtros, sin depender del mes.¦Sorties sans date pour votre pays et vos filtres, indépendamment du mois.¦Titel ohne Termin für dein Land und deine Filter, unabhängig vom Monat.¦Lançamentos sem data para seu país e filtros, independentemente do mês.¦إصدارات بلا موعد لبلدك ومرشحاتك، بغض النظر عن الشهر.¦選択した国と条件に合う、月に関係のない日程未定の作品。¦월과 관계없이 국가와 필터에 맞는 날짜 미정 공개작입니다.¦符合所选国家和筛选条件的日期待定作品，不受月份限制。
+The day’s lineup¦दिन की रिलीज़¦Estrenos del día¦Le programme du jour¦Das Tagesprogramm¦Lançamentos do dia¦إصدارات اليوم¦この日のラインナップ¦오늘의 공개작¦当天上映作品
+Close day details¦दिन की जानकारी बंद करें¦Cerrar detalles del día¦Fermer les détails du jour¦Tagesdetails schließen¦Fechar detalhes do dia¦إغلاق تفاصيل اليوم¦日付の詳細を閉じる¦날짜 상세 닫기¦关闭日期详情
+Your next movie night¦आपकी अगली फ़िल्म की शाम¦Tu próxima noche de cine¦Votre prochaine soirée cinéma¦Dein nächster Filmabend¦Sua próxima noite de cinema¦سهرتك السينمائية القادمة¦次の映画ナイトは¦다음 영화의 밤은¦下一场电影之夜
+starts here.¦यहीं से शुरू होती है।¦empieza aquí.¦commence ici.¦beginnt hier.¦começa aqui.¦تبدأ هنا.¦ここから。¦여기서 시작됩니다.¦从这里开始。
+A little anticipation. A lot to look forward to. Explore what’s coming to screens near you.¦आने वाली फ़िल्मों का इंतज़ार करें। जानें आपके आसपास क्या रिलीज़ हो रहा है।¦Descubre los próximos estrenos que llegan a las pantallas de tu país.¦Découvrez les prochaines sorties sur les écrans près de chez vous.¦Entdecke, was demnächst in deiner Nähe auf die Leinwand kommt.¦Descubra os próximos lançamentos nas telas perto de você.¦اكتشف ما سيصل قريبًا إلى الشاشات بالقرب منك.¦近くのスクリーンに登場する新作を探しましょう。¦가까운 곳에서 공개되는 신작을 확인하세요.¦发现即将在你附近银幕上呈现的新作品。
+{count} release events¦{count} रिलीज़¦{count} estrenos¦{count} sorties¦{count} Veröffentlichungen¦{count} lançamentos¦{count} إصدارات¦{count}件の公開¦{count}개 공개 일정¦{count}项上映记录
+Releases in {month}¦{month} की रिलीज़¦Estrenos de {month}¦Sorties de {month}¦Veröffentlichungen im {month}¦Lançamentos em {month}¦إصدارات {month}¦{month}の公開作品¦{month} 공개작¦{month}上映作品
+View releases for {date}¦{date} की रिलीज़ देखें¦Ver estrenos del {date}¦Voir les sorties du {date}¦Veröffentlichungen am {date} ansehen¦Ver lançamentos de {date}¦عرض إصدارات {date}¦{date}の公開作品を見る¦{date} 공개작 보기¦查看{date}上映作品
+Show all releases on {date}¦{date} की सभी रिलीज़ देखें¦Ver todos los estrenos del {date}¦Voir toutes les sorties du {date}¦Alle Veröffentlichungen am {date} anzeigen¦Ver todos os lançamentos de {date}¦عرض كل إصدارات {date}¦{date}のすべての公開作品¦{date} 전체 공개작 보기¦查看{date}的全部上映作品
++{count} more¦+{count} और¦+{count} más¦+{count} autres¦+{count} weitere¦+{count} mais¦+{count} أخرى¦ほか{count}件¦+{count}개 더¦还有{count}项
+Some release dates could not be checked. Refresh to try again.¦कुछ रिलीज़ की तारीखें जाँची नहीं जा सकीं। फिर से रीफ़्रेश करें।¦No se pudieron comprobar algunas fechas. Actualiza para reintentar.¦Certaines dates n’ont pas pu être vérifiées. Actualisez pour réessayer.¦Einige Termine konnten nicht geprüft werden. Bitte aktualisieren.¦Algumas datas não puderam ser verificadas. Atualize para tentar novamente.¦تعذر التحقق من بعض المواعيد. حدّث للمحاولة مجددًا.¦一部の日程を確認できませんでした。更新してお試しください。¦일부 날짜를 확인하지 못했습니다. 새로고침해 주세요.¦部分上映日期无法确认，请刷新重试。
+Search by¦खोज का तरीका¦Buscar por¦Rechercher par¦Suchen nach¦Buscar por¦البحث حسب¦検索方法¦검색 기준¦搜索方式
+Matched keywords:¦मिले हुए शब्द:¦Palabras detectadas:¦Mots-clés reconnus :¦Erkannte Schlüsselwörter:¦Palavras identificadas:¦الكلمات المطابقة:¦認識したキーワード：¦인식된 키워드:¦识别的关键词：
+Series categories:¦सीरीज़ की शैलियाँ:¦Categorías de series:¦Catégories de séries :¦Serienkategorien:¦Categorias de séries:¦فئات المسلسلات:¦ドラマのカテゴリ：¦시리즈 분류:¦剧集分类：
+Selected:¦चुना गया:¦Seleccionado:¦Sélection :¦Ausgewählt:¦Selecionado:¦المحدد:¦選択中：¦선택됨:¦已选择：
+Title match¦शीर्षक मिला¦Coincidencia de título¦Titre correspondant¦Titelübereinstimmung¦Título correspondente¦عنوان مطابق¦タイトル一致¦제목 일치¦片名匹配
+No {genre}¦{genre} नहीं¦Sin {genre}¦Sans {genre}¦Ohne {genre}¦Sem {genre}¦بدون {genre}¦{genre}なし¦{genre} 제외¦不要{genre}
+None¦कुछ नहीं¦Ninguna¦Aucun¦Keine¦Nenhum¦لا شيء¦なし¦없음¦无
+Use a genre, original language, and runtime. Example: {example}¦शैली, मूल भाषा और अवधि लिखें। उदाहरण: {example}¦Usa género, idioma original y duración. Ejemplo: {example}¦Indiquez un genre, une langue et une durée. Exemple : {example}¦Nenne Genre, Originalsprache und Laufzeit. Beispiel: {example}¦Use gênero, idioma original e duração. Exemplo: {example}¦استخدم النوع واللغة الأصلية والمدة. مثال: {example}¦ジャンル、原語、時間を入力。例：{example}¦장르, 원어, 길이를 입력하세요. 예: {example}¦输入类型、原始语言和时长。例如：{example}
+Keyword matching only; other story details are not interpreted.¦केवल शब्दों का मिलान होता है; कहानी के अन्य विवरण नहीं समझे जाते।¦Solo se reconocen palabras clave, no otros detalles de la historia.¦Seuls les mots-clés sont reconnus, pas les autres détails de l’histoire.¦Nur Schlüsselwörter werden erkannt, keine weiteren Handlungsdetails.¦Apenas palavras-chave são reconhecidas, não outros detalhes da história.¦تتم مطابقة الكلمات فقط، دون تفسير بقية تفاصيل القصة.¦キーワードのみを認識します。その他の物語の内容は解釈しません。¦키워드만 인식하며 다른 줄거리 내용은 해석하지 않습니다.¦仅匹配关键词，不解析其他剧情描述。
+No matches on these pages. Check more results or adjust a filter.¦इन पन्नों पर कोई नतीजा नहीं मिला। और नतीजे देखें या फ़िल्टर बदलें।¦No hay coincidencias aquí. Busca más resultados o ajusta un filtro.¦Aucun résultat ici. Consultez la suite ou modifiez un filtre.¦Keine Treffer auf diesen Seiten. Lade weitere oder ändere einen Filter.¦Nenhuma correspondência nestas páginas. Veja mais resultados ou ajuste um filtro.¦لا توجد نتائج في هذه الصفحات. اعرض المزيد أو عدّل أحد المرشحات.¦このページに一致する作品はありません。続きを見るか条件を変更してください。¦이 페이지에 결과가 없습니다. 더 보거나 필터를 조정하세요.¦这些页面暂无匹配结果，请查看更多或调整筛选条件。
+No matches. Try another title, remove a preference, or widen the runtime.¦कोई नतीजा नहीं मिला। दूसरा नाम, कम फ़िल्टर या अधिक अवधि आज़माएँ।¦Sin coincidencias. Prueba otro título, quita un filtro o amplía la duración.¦Aucun résultat. Essayez un autre titre ou assouplissez les critères.¦Keine Treffer. Versuche einen anderen Titel oder weniger Filter.¦Sem correspondências. Tente outro título ou amplie os critérios.¦لا توجد نتائج. جرّب عنوانًا آخر أو قلّل المرشحات أو زد المدة.¦一致する作品はありません。タイトルや条件、時間を変えてみてください。¦결과가 없습니다. 다른 제목이나 더 넓은 조건으로 검색하세요.¦暂无匹配结果，请尝试其他片名、移除条件或放宽时长限制。
+Select a reference movie or series from the title suggestions first.¦पहले सुझावों से कोई फ़िल्म या सीरीज़ चुनें।¦Primero elige una película o serie de las sugerencias.¦Choisissez d’abord un film ou une série dans les suggestions.¦Wähle zuerst einen Film oder eine Serie aus den Vorschlägen.¦Primeiro escolha um filme ou série nas sugestões.¦اختر فيلمًا أو مسلسلًا من الاقتراحات أولًا.¦候補から参考にする作品を選んでください。¦먼저 추천 목록에서 기준 작품을 선택하세요.¦请先从建议列表中选择一部参考电影或剧集。
+Shared genres: {genres}.¦मिलती-जुलती शैलियाँ: {genres}।¦Géneros en común: {genres}.¦Genres en commun : {genres}.¦Gemeinsame Genres: {genres}.¦Gêneros em comum: {genres}.¦أنواع مشتركة: {genres}.¦共通ジャンル：{genres}。¦공통 장르: {genres}.¦共同类型：{genres}。
+Shares cast members.¦कुछ कलाकार समान हैं।¦Comparte parte del reparto.¦Des acteurs en commun.¦Gemeinsame Besetzungsmitglieder.¦Elenco em comum.¦ممثلون مشتركون.¦共通のキャスト。¦공통 출연진이 있습니다.¦有共同演员。
+Shares a director or creator.¦निर्देशक या निर्माता समान हैं।¦Comparte director o creador.¦Réalisation ou création en commun.¦Gemeinsame Regie oder Schöpfer.¦Diretor ou criador em comum.¦مخرج أو مبدع مشترك.¦同じ監督・制作者。¦감독이나 제작자가 같습니다.¦有共同导演或主创。
+Recommended from the reference title.¦चुने हुए शीर्षक के आधार पर सुझाव।¦Recomendado a partir del título de referencia.¦Recommandé selon le titre de référence.¦Empfohlen anhand des Referenztitels.¦Recomendado com base no título de referência.¦مقترح بناءً على العمل المرجعي.¦参考作品に基づくおすすめ。¦기준 작품을 바탕으로 추천했습니다.¦根据参考作品推荐。
+Explore {title}¦{title} की जानकारी देखें¦Ver {title}¦Découvrir {title}¦{title} entdecken¦Explorar {title}¦استكشف {title}¦{title}の詳細¦{title} 자세히 보기¦查看{title}
+Preview {title}¦{title} की झलक देखें¦Vista previa de {title}¦Aperçu de {title}¦Vorschau: {title}¦Prévia de {title}¦معاينة {title}¦{title}のプレビュー¦{title} 미리 보기¦预览{title}
+Show {title}¦{title} दिखाएँ¦Mostrar {title}¦Afficher {title}¦{title} anzeigen¦Mostrar {title}¦عرض {title}¦{title}を表示¦{title} 보기¦显示{title}
+Edit {label}¦{label} बदलें¦Editar {label}¦Modifier {label}¦{label} bearbeiten¦Editar {label}¦تعديل {label}¦{label}を編集¦{label} 수정¦修改{label}
+Poster for {title}¦{title} का पोस्टर¦Póster de {title}¦Affiche de {title}¦Poster zu {title}¦Pôster de {title}¦ملصق {title}¦{title}のポスター¦{title} 포스터¦{title}海报
+Poster unavailable for {title}¦{title} का पोस्टर उपलब्ध नहीं है¦Póster no disponible para {title}¦Affiche indisponible pour {title}¦Kein Poster für {title} verfügbar¦Pôster indisponível para {title}¦ملصق {title} غير متاح¦{title}のポスターはありません¦{title} 포스터 없음¦暂无{title}海报
+Suggestions for {title}¦{title} के सुझाव¦Sugerencias para {title}¦Suggestions pour {title}¦Vorschläge für {title}¦Sugestões para {title}¦اقتراحات لـ {title}¦{title}の候補¦{title} 추천¦{title}建议
+{index} of {count}: {title}¦{count} में से {index}: {title}¦{index} de {count}: {title}¦{index} sur {count} : {title}¦{index} von {count}: {title}¦{index} de {count}: {title}¦{index} من {count}: {title}¦{count}件中{index}：{title}¦{count}개 중 {index}: {title}¦第{index}项，共{count}项：{title}
+Previous CinePick¦पिछला CinePick¦CinePick anterior¦CinePick précédent¦Vorheriger CinePick¦CinePick anterior¦CinePick السابق¦前のCinePick¦이전 CinePick¦上一个CinePick
+Next CinePick¦अगला CinePick¦Siguiente CinePick¦CinePick suivant¦Nächster CinePick¦Próximo CinePick¦CinePick التالي¦次のCinePick¦다음 CinePick¦下一个CinePick
+Choose a CinePick¦कोई CinePick चुनें¦Elegir un CinePick¦Choisir un CinePick¦CinePick auswählen¦Escolher um CinePick¦اختر CinePick¦CinePickを選ぶ¦CinePick 선택¦选择CinePick
+Surprise me¦कुछ नया सुझाएँ¦Sorpréndeme¦Surprenez-moi¦Überrasch mich¦Surpreenda-me¦فاجئني¦おまかせ¦깜짝 추천¦惊喜推荐
+Another pick¦एक और सुझाव¦Otra opción¦Un autre choix¦Anderer Vorschlag¦Outra escolha¦اختيار آخر¦別の作品¦다른 추천¦再推荐一部
+Try another pick¦दूसरा सुझाव आज़माएँ¦Probar otra opción¦Essayer un autre choix¦Anderen Vorschlag versuchen¦Tentar outra escolha¦جرّب اختيارًا آخر¦別の作品を試す¦다른 추천 시도¦尝试其他推荐
+Your surprise pick.¦आपके लिए एक ख़ास सुझाव।¦Tu elección sorpresa.¦Votre choix surprise.¦Dein Überraschungstitel.¦Sua escolha surpresa.¦اختيارك المفاجئ.¦あなたへのおすすめ。¦깜짝 추천 작품.¦你的惊喜推荐。
+Movie night?¦फ़िल्म देखने का मन है?¦¿Noche de cine?¦Soirée cinéma ?¦Filmabend?¦Noite de cinema?¦ليلة سينمائية؟¦映画はいかが？¦영화 볼까요?¦想看电影？
+A little movie magic¦फ़िल्मों का थोड़ा जादू¦Un poco de magia del cine¦Un peu de magie du cinéma¦Ein wenig Filmzauber¦Um pouco de magia do cinema¦القليل من سحر السينما¦映画の魔法を少し¦작은 영화의 마법¦一点电影魔法
+Hide popcorn buddy¦पॉपकॉर्न साथी छिपाएँ¦Ocultar compañero de palomitas¦Masquer le compagnon popcorn¦Popcorn-Begleiter ausblenden¦Ocultar companheiro de pipoca¦إخفاء رفيق الفشار¦ポップコーンを隠す¦팝콘 친구 숨기기¦隐藏爆米花伙伴
+Drag to move, or use the arrow keys when focused.¦खींचकर खिसकाएँ या फ़ोकस होने पर ऐरो बटन दबाएँ।¦Arrastra para mover o usa las flechas con el foco.¦Faites glisser ou utilisez les flèches lorsque l’élément est sélectionné.¦Zum Bewegen ziehen oder bei Fokus die Pfeiltasten nutzen.¦Arraste para mover ou use as setas quando selecionado.¦اسحب للتحريك أو استخدم أسهم لوحة المفاتيح عند التركيز.¦ドラッグ、または選択中に矢印キーで移動できます。¦드래그하거나 선택 후 방향키로 이동하세요.¦拖动移动，或选中后使用方向键。
+Drag to move. Click for a surprise film.¦खिसकाने के लिए खींचें। सुझाव के लिए क्लिक करें।¦Arrastra para mover. Haz clic para una sorpresa.¦Faites glisser pour déplacer. Cliquez pour une surprise.¦Ziehen zum Bewegen. Klicken für einen Überraschungstitel.¦Arraste para mover. Clique para uma surpresa.¦اسحب للتحريك. انقر لاختيار مفاجئ.¦ドラッグで移動。クリックでおすすめ。¦드래그로 이동, 클릭으로 깜짝 추천.¦拖动移动，点击获取惊喜推荐。
+Back to top¦ऊपर जाएँ¦Volver arriba¦Retour en haut¦Nach oben¦Voltar ao topo¦العودة للأعلى¦先頭へ戻る¦맨 위로¦返回顶部
+404 · Page not found¦404 · पन्ना नहीं मिला¦404 · Página no encontrada¦404 · Page introuvable¦404 · Seite nicht gefunden¦404 · Página não encontrada¦404 · الصفحة غير موجودة¦404・ページが見つかりません¦404 · 페이지를 찾을 수 없음¦404 · 页面不存在
+This scene is missing.¦यह दृश्य नहीं मिला।¦Falta esta escena.¦Cette scène est introuvable.¦Diese Szene fehlt.¦Esta cena está faltando.¦هذا المشهد مفقود.¦このシーンは見つかりません。¦이 장면을 찾을 수 없습니다.¦这个场景不见了。
+The page you’re looking for could not be found.¦आपका खोजा हुआ पन्ना नहीं मिला।¦No se encontró la página que buscas.¦La page recherchée est introuvable.¦Die gesuchte Seite wurde nicht gefunden.¦A página que você procura não foi encontrada.¦تعذر العثور على الصفحة المطلوبة.¦お探しのページは見つかりませんでした。¦찾으시는 페이지가 없습니다.¦找不到你要访问的页面。
+Title link¦शीर्षक का लिंक¦Enlace del título¦Lien du titre¦Link zum Titel¦Link do título¦رابط العمل¦作品リンク¦작품 링크¦作品链接
+Link for {title} copied to clipboard.¦{title} का लिंक कॉपी हो गया।¦Enlace de {title} copiado.¦Lien de {title} copié.¦Link für {title} kopiert.¦Link de {title} copiado.¦تم نسخ رابط {title}.¦{title}のリンクをコピーしました。¦{title} 링크가 복사되었습니다.¦已复制{title}的链接。
+Found something to watch: {title}.¦देखने के लिए कुछ मिला: {title}।¦Encontré algo para ver: {title}.¦Une découverte à regarder : {title}.¦Etwas zum Ansehen gefunden: {title}.¦Encontrei algo para assistir: {title}.¦وجدت شيئًا للمشاهدة: {title}.¦おすすめの作品：{title}。¦볼 만한 작품을 찾았어요: {title}.¦发现一部好作品：{title}。
+Copy this link for your next movie night.¦अपनी अगली फ़िल्म की शाम के लिए यह लिंक कॉपी करें।¦Copia este enlace para tu próxima noche de cine.¦Copiez ce lien pour votre prochaine soirée cinéma.¦Kopiere diesen Link für deinen nächsten Filmabend.¦Copie este link para sua próxima noite de cinema.¦انسخ هذا الرابط لسهرتك السينمائية القادمة.¦次の映画ナイトにこのリンクを共有しましょう。¦다음 영화의 밤을 위해 링크를 복사하세요.¦复制链接，留给下一次电影之夜。
+Movie and series information and artwork are supplied through TMDB.¦फ़िल्म और सीरीज़ की जानकारी और चित्र TMDB से लिए गए हैं।¦La información y las imágenes de películas y series proceden de TMDB.¦Les informations et images des films et séries proviennent de TMDB.¦Informationen und Bilder zu Filmen und Serien stammen von TMDB.¦Informações e imagens de filmes e séries são fornecidas pelo TMDB.¦معلومات وصور الأفلام والمسلسلات مقدمة عبر TMDB.¦映画・ドラマの情報と画像はTMDBから提供されています。¦영화와 시리즈 정보 및 이미지는 TMDB에서 제공합니다.¦电影和剧集的信息及图片由TMDB提供。
+From our Instagram¦हमारे Instagram से¦Desde nuestro Instagram¦Sur notre Instagram¦Von unserem Instagram¦Do nosso Instagram¦من حسابنا على Instagram¦Instagramより¦Instagram에서¦来自我们的Instagram
+Try a genre, original language, or runtime.¦शैली, मूल भाषा या अवधि लिखें।¦Prueba un género, idioma original o duración.¦Indiquez un genre, une langue ou une durée.¦Gib ein Genre, eine Originalsprache oder Laufzeit an.¦Use um gênero, idioma original ou duração.¦جرّب نوعًا أو لغة أصلية أو مدة.¦ジャンル、原語、時間を指定してください。¦장르, 원어 또는 길이를 입력하세요.¦请输入类型、原始语言或时长。
+Streaming availability data is provided by JustWatch via TMDB.¦स्ट्रीमिंग उपलब्धता की जानकारी TMDB के माध्यम से JustWatch देता है।¦JustWatch proporciona los datos de disponibilidad a través de TMDB.¦Les données de disponibilité sont fournies par JustWatch via TMDB.¦Streaming-Verfügbarkeiten werden von JustWatch über TMDB bereitgestellt.¦Os dados de disponibilidade são fornecidos pelo JustWatch via TMDB.¦بيانات توفر المشاهدة مقدمة من JustWatch عبر TMDB.¦配信情報はTMDBを通じてJustWatchから提供されています。¦시청 가능 정보는 TMDB를 통해 JustWatch에서 제공합니다.¦观看平台信息由JustWatch通过TMDB提供。
+`.trim().split('\n').map(row => row.split('¦'))

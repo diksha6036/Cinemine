@@ -1,8 +1,10 @@
+import { useI18n } from '../../i18n/LanguageProvider'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { ArrowUp } from 'lucide-react'
 
 export function PageProgress() {
+  const { t } = useI18n()
   const { pathname } = useLocation()
   const line = useRef<HTMLDivElement>(null)
   const [showTop, setShowTop] = useState(false)
@@ -25,6 +27,6 @@ export function PageProgress() {
   }, [pathname])
   return <>
     <div className="page-progress" aria-hidden="true"><div ref={line} /></div>
-    {showTop && <button type="button" className="back-to-top" aria-label="Back to top" title="Back to top" onClick={() => { window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); document.querySelector<HTMLElement>('.brand')?.focus({ preventScroll: true }) }}><ArrowUp size={17} /><span>Back to top</span></button>}
+    {showTop && <button type="button" className="back-to-top" aria-label={t("Back to top")} title={t("Back to top")} onClick={() => { window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); document.querySelector<HTMLElement>('.brand')?.focus({ preventScroll: true }) }}><ArrowUp size={17} /><span>{t("Back to top")}</span></button>}
   </>
 }

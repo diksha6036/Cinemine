@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n/LanguageProvider'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { mediaKey } from '../../../shared/media.mjs'
@@ -10,6 +11,7 @@ import { useDraggableBuddy } from './useDraggableBuddy'
 import type { SearchMovie } from '../../features/search/types/search'
 
 export function PopcornBuddy() {
+  const { t } = useI18n()
   const buddy = useDraggableBuddy()
   const { pathname } = useLocation()
   const [hidden, setHidden] = useState(false)
@@ -46,7 +48,7 @@ export function PopcornBuddy() {
         nextPage.current = data.nextPage
         pool.current = [...new Map(data.titles.filter(film => film.posterUrl && mediaKey(film) !== currentId && (!movie || mediaKey(film) !== mediaKey(movie)) && !seen.current.has(mediaKey(film))).map(film => [mediaKey(film), film])).values()]
       }
-      if (!pool.current.length) throw new Error('No surprise titles are available in this batch. Try another pick.')
+      if (!pool.current.length) throw new Error(t('No matches on these pages. Check more results or adjust a filter.'))
       const index = Math.floor(Math.random() * pool.current.length)
       const [chosen] = pool.current.splice(index, 1)
       seen.current.add(mediaKey(chosen)); setMovie(chosen)
@@ -58,16 +60,16 @@ export function PopcornBuddy() {
   }
   if (hidden) return null
   return <>
-    <aside ref={buddy.ref} className={`popcorn-buddy${buddy.dragging ? ' is-dragging' : ''}${buddy.position && buddy.position.y < 140 ? ' greeting-below' : ''}${buddy.position && buddy.position.x < 100 ? ' greeting-left' : ''}`} style={buddy.position ? { left: buddy.position.x, top: buddy.position.y, right: 'auto', bottom: 'auto' } : undefined} aria-label="Movie-night companion">
-      <span id="buddy-greeting" className="buddy-greeting">Movie night? <span aria-hidden="true">✦</span></span>
-      <span id="buddy-move-hint" className="sr-only">Drag to move, or use the arrow keys when focused.</span>
-      <button type="button" className="buddy-trigger" aria-label="Surprise me with a film" aria-describedby="buddy-greeting buddy-move-hint" aria-haspopup="dialog" title="Drag to move. Click for a surprise film." onPointerDown={buddy.onPointerDown} onPointerMove={buddy.onPointerMove} onPointerUp={buddy.onPointerUp} onPointerCancel={buddy.onPointerCancel} onLostPointerCapture={buddy.onLostPointerCapture} onKeyDown={buddy.onKeyDown} onDragStart={event => event.preventDefault()} onClick={event => { if (!buddy.shouldIgnoreClick(event)) void pick() }}><PopcornCharacter /></button>
-      <button type="button" className="buddy-dismiss" aria-label="Hide popcorn buddy" onClick={() => { setHidden(true); try { sessionStorage.setItem('cinemine-hide-buddy', '1') } catch { /* Storage is optional. */ } }}><X size={14} /></button>
+    <aside ref={buddy.ref} className={`popcorn-buddy${buddy.dragging ? ' is-dragging' : ''}${buddy.position && buddy.position.y < 140 ? ' greeting-below' : ''}${buddy.position && buddy.position.x < 100 ? ' greeting-left' : ''}`} style={buddy.position ? { left: buddy.position.x, top: buddy.position.y, right: 'auto', bottom: 'auto' } : undefined} aria-label={t("Movie-night companion")}>
+      <span id="buddy-greeting" className="buddy-greeting">{t("Movie night?")} <span aria-hidden="true">✦</span></span>
+      <span id="buddy-move-hint" className="sr-only">{t("Drag to move, or use the arrow keys when focused.")}</span>
+      <button type="button" className="buddy-trigger" aria-label={t("Surprise me with a film")} aria-describedby="buddy-greeting buddy-move-hint" aria-haspopup="dialog" title={t("Drag to move. Click for a surprise film.")} onPointerDown={buddy.onPointerDown} onPointerMove={buddy.onPointerMove} onPointerUp={buddy.onPointerUp} onPointerCancel={buddy.onPointerCancel} onLostPointerCapture={buddy.onLostPointerCapture} onKeyDown={buddy.onKeyDown} onDragStart={event => event.preventDefault()} onClick={event => { if (!buddy.shouldIgnoreClick(event)) void pick() }}><PopcornCharacter /></button>
+      <button type="button" className="buddy-dismiss" aria-label={t("Hide popcorn buddy")} onClick={() => { setHidden(true); try { sessionStorage.setItem('cinemine-hide-buddy', '1') } catch { /* Storage is optional. */ } }}><X size={14} /></button>
     </aside>
     {open && <Dialog titleId="buddy-dialog-title" className="buddy-dialog" onClose={close}>
-      <p className="feature-eyebrow">A little movie magic</p><h2 id="buddy-dialog-title">Your movie-night surprise.</h2>
-      {loading ? <div className="feature-loading" role="status"><span className="loading-orbit" /> Finding something to watch…</div> : error ? <p role="alert" className="feature-empty">{error}</p> : movie && <MoviePreview movie={movie} titleId="buddy-film-title" onNavigate={close} />}
-      <div className="feature-actions"><button type="button" className="feature-button" disabled={loading} onClick={() => void pick()}><Shuffle size={16} /> {error ? 'Try another pick' : 'Another pick'}</button></div>
+      <p className="feature-eyebrow">{t("A little movie magic")}</p><h2 id="buddy-dialog-title">{t("Your movie-night surprise.")}</h2>
+      {loading ? <div className="feature-loading" role="status"><span className="loading-orbit" />  {t("Finding something to watch…")}</div> : error ? <p role="alert" className="feature-empty">{t(error)}</p> : movie && <MoviePreview movie={movie} titleId="buddy-film-title" onNavigate={close} />}
+      <div className="feature-actions"><button type="button" className="feature-button" disabled={loading} onClick={() => void pick()}><Shuffle size={16} /> {t(error ? 'Try another pick' : 'Another pick')}</button></div>
     </Dialog>}
   </>
 }

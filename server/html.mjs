@@ -6,6 +6,8 @@ import { readFileSync } from 'node:fs'
 import { homeCatalogue, getTitles } from './titles.mjs'
 import { createMovieSitemapCache, sitemapIndexXml, pageSitemapXml, movieSitemapXml } from './sitemaps.mjs'
 import { cleanOrigin, createMetadata, escapeHtml, renderHead, scriptJson } from '../shared/seo.mjs'
+import { withLanguage, currentLanguage } from './language.mjs'
+import { requestLanguage, localeNames } from '../shared/languages.mjs'
 
 function siteConfiguration() {
   let local = {}
@@ -30,7 +32,10 @@ async function defaultRender(page) {
   const { render } = await import(pathToFileURL(resolve(process.cwd(), 'dist-ssr/entry-server.mjs')).href)
   return render(page)
 }
-export async function renderDocument(request, options = {}) {
+export function renderDocument(request, options = {}) {
+  return withLanguage(requestLanguage(request), () => renderLocalizedDocument(request, options))
+}
+async function renderLocalizedDocument(request, options = {}) {
   const location = requestLocation(request)
   const { pathname, origin, noIndex } = location
   const headers = { 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300' }
@@ -47,7 +52,12 @@ export async function renderDocument(request, options = {}) {
       return { status: 200, headers: { ...xmlHeaders, 'X-Sitemap-Cache': result.stale ? 'stale' : 'fresh' }, body: movieSitemapXml(origin, result.movies) }
     } catch { return { status: 503, headers: { ...headers, 'Cache-Control': 'no-store', 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' }, body: 'The sitemap is temporarily unavailable. Please retry.' } }
   }
-  const page = { ...location, status: 200, today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) }
+  const language = currentLanguage()
+  // HTML depends on the visitor's language cookie. Never share it through a CDN.
+  headers['Cache-Control'] = 'private, no-store'
+  headers['Vary'] = 'Cookie'
+  headers['Content-Language'] = language.code
+  const page = { ...location, language: language.code, status: 200, today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) }
   try {
     if (pathname === '/' || pathname === '/sitemap') page.home = { ...await homeCatalogue(), refreshedAt: new Date().toISOString() }
     else if (/^\/(movie|series)\/[1-9]\d*$/.test(pathname)) {
@@ -59,12 +69,13 @@ export async function renderDocument(request, options = {}) {
     page.status = error?.status === 404 ? 404 : 503
     page.error = page.status === 404 ? 'This film could not be found.' : 'Film information is temporarily unavailable. Please try again.'
   }
+  page.localeNames = localeNames(language.code, [page.movie, ...(page.home?.movies ?? []), ...(page.home?.spotlights ?? [])].flatMap(movie => movie?.originalLanguages ?? []))
   const metadata = createMetadata({ ...page, movies: page.home?.movies })
   const template = options.template ?? await readFile(resolve(process.cwd(), 'dist/index.html'), 'utf8')
   const content = await (options.render ?? defaultRender)(page)
   const verification = siteConfiguration()
   const verificationTags = [['google-site-verification', verification.googleVerification], ['msvalidate.01', verification.bingVerification]].filter(([, value]) => value).map(([name, value]) => `<meta name="${name}" content="${escapeHtml(value)}">`).join('\n')
-  const body = template.replace(/<!--seo:start-->[\s\S]*?<!--seo:end-->/, renderHead(metadata) + verificationTags)
+  const body = template.replace(/<html\b[^>]*>/i, `<html lang="${language.code}" dir="${language.dir}">`).replace(/<!--seo:start-->[\s\S]*?<!--seo:end-->/, renderHead({ ...metadata, locale: language.locale.replace('-', '_') }) + verificationTags)
     .replace('<div id="root"></div>', () => `<div id="root">${content}</div><script>window.__CINEMINE_PAGE__=${scriptJson(page)}</script>`)
   if (page.status >= 400) { headers['Cache-Control'] = 'no-store'; if (page.status === 503) headers['Retry-After'] = '60' }
   if (noIndex || page.status >= 400) headers['X-Robots-Tag'] = 'noindex, follow'

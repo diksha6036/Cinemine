@@ -1,8 +1,10 @@
+import { useI18n } from '../../i18n/LanguageProvider'
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export function Dialog({ titleId, onClose, children, className = '', returnFocusTo }: { titleId: string; onClose: () => void; children: ReactNode; className?: string; returnFocusTo?: HTMLElement | null }) {
+  const { t } = useI18n()
   const ref = useRef<HTMLDialogElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
@@ -26,7 +28,7 @@ export function Dialog({ titleId, onClose, children, className = '', returnFocus
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
   }}>
-    <button type="button" className="dialog-close icon-button" aria-label="Close dialog" onClick={onClose}><X size={21} /></button>
+    <button type="button" className="dialog-close icon-button" aria-label={t("Close dialog")} onClick={onClose}><X size={21} /></button>
     {children}
   </dialog>
 }

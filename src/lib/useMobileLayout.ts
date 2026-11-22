@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
-export const MOBILE_LAYOUT_QUERY = '(max-width: 760px)'
+// Shared compact navigation for phones and tablets, including landscape tablets.
+export const MOBILE_LAYOUT_QUERY = '(max-width: 1400px)'
 
 function subscribe(callback: () => void) {
   const media = window.matchMedia(MOBILE_LAYOUT_QUERY)

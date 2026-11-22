@@ -2,9 +2,16 @@ import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms,
 import { isConfigured } from './env.mjs'
 import { readDiscoveryOptions } from './discovery.mjs'
 import { discoverTitles, getTitles, homeCatalogue, readMediaType, readTitleOptions, searchTitles, similarTitles, trendingTitles } from './titles.mjs'
+import { withLanguage, currentLanguage } from './language.mjs'
+import { requestLanguage } from '../shared/languages.mjs'
+import { translate } from '../shared/translations.mjs'
 
 const windows = new Map()
 function send(response, status, body) {
+  if (body.error && currentLanguage().code !== 'en') {
+    const translated = translate(currentLanguage().code, body.error)
+    body = { ...body, error: translated === body.error ? translate(currentLanguage().code, 'Could not load data. Please retry.') : translated }
+  }
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Robots-Tag': 'noindex' })
   response.end(JSON.stringify(body))
 }
@@ -14,7 +21,10 @@ export function validDate(value) {
   if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1) return false
   return day <= new Date(Date.UTC(year, month, 0)).getUTCDate()
 }
-export async function handleApi(request, response) {
+export function handleApi(request, response) {
+  return withLanguage(requestLanguage(request), () => handleLocalizedApi(request, response))
+}
+async function handleLocalizedApi(request, response) {
   const url = new URL(request.url ?? '/', 'http://localhost')
   if (!url.pathname.startsWith('/api/')) return false
   if (request.method !== 'GET') { send(response, 405, { error: 'Only GET is supported.' }); return true }

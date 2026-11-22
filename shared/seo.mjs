@@ -1,4 +1,5 @@
 import { titlePath } from './media.mjs'
+import { translate } from './translations.mjs'
 export const SITE_NAME = 'Cinemine'
 export const HOME_DESCRIPTION = 'Discover movies and web series with Cinemine. Search by title or mood, find streaming platforms by country, and explore movie release dates.'
 export function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]) }
@@ -6,7 +7,7 @@ export function scriptJson(value) { return JSON.stringify(value).replace(/</g, '
 export function cleanOrigin(value) {
   try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? url.origin : '' } catch { return '' }
 }
-export function createMetadata({ pathname = '/', origin, movie, movies = [], status = 200, noIndex = false }) {
+export function createMetadata({ pathname = '/', origin, movie, movies = [], status = 200, noIndex = false, language = 'en' }) {
   const base = cleanOrigin(origin)
   const path = pathname === '/' ? '/' : pathname.replace(/\/+$/, '')
   const url = `${base}${path}`
@@ -32,6 +33,14 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
   }
   if (missing) { title = 'Page Not Found | Cinemine'; description = 'This page could not be found. Explore trending films and movie release dates on Cinemine.' }
   if (status >= 500) { title = 'Temporarily Unavailable | Cinemine'; description = 'Film information is temporarily unavailable. Please try Cinemine again shortly.' }
+  if (language !== 'en') {
+    const t = key => translate(language, key)
+    if (!isTitle) {
+      title = `${t(isCalendar ? 'Release calendar' : isDirectory ? 'Sitemap' : isWatchSearch ? 'Where to watch' : isCredits ? 'Credits' : 'Find movies & series')} | Cinemine`
+      description = t(isCalendar ? 'A little anticipation. A lot to look forward to. Explore what’s coming to screens near you.' : isCredits ? 'Movie and series information and artwork are supplied through TMDB.' : isWatchSearch ? 'Search for a movie or web series and choose your country to see its streaming platforms.' : 'Search movies and web series by title, mood, description, or something you already enjoy.')
+    } else if (movie) description = movie.shortDescription
+    if (missing || status >= 500) { title = `${t(missing ? '404 · Page not found' : 'Couldn’t load this title')} | Cinemine`; description = t(missing ? 'The page you’re looking for could not be found.' : 'Could not load data. Please retry.') }
+  }
   description = description.replace(/\s+/g, ' ').trim(); if (description.length > 180) description = description.slice(0, 177).replace(/\s+\S*$/, '') + '…'
   const robots = noIndex || missing || status >= 400 || (isTitle && !movie) ? 'noindex, follow' : 'index, follow, max-image-preview:large'
   const image = movie?.backdropUrl || movie?.posterUrl || `${base}/images/cinemine-share.png`
@@ -53,7 +62,7 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
 export function renderHead(meta) {
   const tag = (name, content, property = false) => `<meta ${property ? 'property' : 'name'}="${name}" content="${escapeHtml(content)}" data-seo>`
   return [ `<title>${escapeHtml(meta.title)}</title>`, tag('description', meta.description), tag('robots', meta.robots), `<link rel="canonical" href="${escapeHtml(meta.canonical)}" data-seo>`,
-    tag('og:site_name', SITE_NAME, true), tag('og:locale', 'en_IN', true), tag('og:title', meta.title, true), tag('og:description', meta.description, true), tag('og:type', meta.type, true), tag('og:url', meta.canonical, true), tag('og:image', meta.image, true), tag('og:image:alt', meta.imageAlt, true),
+    tag('og:site_name', SITE_NAME, true), tag('og:locale', meta.locale || 'en_IN', true), tag('og:title', meta.title, true), tag('og:description', meta.description, true), tag('og:type', meta.type, true), tag('og:url', meta.canonical, true), tag('og:image', meta.image, true), tag('og:image:alt', meta.imageAlt, true),
     tag('twitter:card', 'summary_large_image'), tag('twitter:title', meta.title), tag('twitter:description', meta.description), tag('twitter:image', meta.image), tag('twitter:image:alt', meta.imageAlt),
     `<script type="application/ld+json" id="page-structured-data">${scriptJson(meta.jsonLd)}</script>` ].join('\n')
 }

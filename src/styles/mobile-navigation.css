@@ -1,10 +1,10 @@
 .mobile-tabs-nav { display: none; }
 
-@media (max-width: 760px) {
+@media (max-width: 1400px) {
   html { scroll-padding-top: 146px; }
   .site-header { position: sticky; inset: auto; top: 0; background: #0b0d0ef5; border-bottom: 1px solid #baa38326; backdrop-filter: blur(12px); }
   .header-inner { min-height: 66px; gap: 12px; }
-  .site-header .main-nav, .site-header .menu-toggle { display: none; }
+  .site-header .main-nav { display: none; }
   .site-header .navbar-search { margin: 0; }
   .mobile-tabs-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding-bottom: 12px; }
   .mobile-tabs-nav > a { display: flex; align-items: center; justify-content: center; min-height: 46px; padding: 6px; border: 1px solid #baa38333; border-radius: 7px; color: var(--color-muted); text-align: center; font-size: .875rem; line-height: 1.3; }
