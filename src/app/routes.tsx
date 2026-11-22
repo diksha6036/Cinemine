@@ -6,4 +6,5 @@ import { SitemapPage } from '../pages/SitemapPage'
 import { WhereToWatchPage } from '../pages/WhereToWatchPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { CreditsPage } from '../pages/CreditsPage'
-export const routes = [{ element: <App />, children: [{ path: '/', element: <HomePage /> }, { path: '/calendar', element: <CalendarPage /> }, { path: '/where-to-watch', element: <WhereToWatchPage /> }, { path: '/sitemap', element: <SitemapPage /> }, { path: '/credits', element: <CreditsPage /> }, { path: '/movie/:id', element: <MoviePage /> }, { path: '*', element: <NotFoundPage /> }] }]
+import { FindMyMoviePage } from '../pages/FindMyMoviePage'
+export const routes = [{ element: <App />, children: [{ path: '/', element: <HomePage /> }, { path: '/find-my-movie', element: <FindMyMoviePage /> }, { path: '/calendar', element: <CalendarPage /> }, { path: '/where-to-watch', element: <WhereToWatchPage /> }, { path: '/sitemap', element: <SitemapPage /> }, { path: '/credits', element: <CreditsPage /> }, { path: '/movie/:id', element: <MoviePage /> }, { path: '/series/:id', element: <MoviePage mediaType="tv" /> }, { path: '*', element: <NotFoundPage /> }] }]

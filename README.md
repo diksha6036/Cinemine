@@ -1,6 +1,6 @@
 # cinemine
 
-A cinematic movie-discovery website with a featured-film slider, real movie posters, title search, mood and preference filters, film details, and a regional release calendar. The original cream-and-orange design is preserved. No account, sign-in, or sign-up is required for visitors.
+A cinematic discovery website for movies and web series, with real artwork, combined title search, mood and preference filters, title details, streaming availability by country, and a regional movie-release calendar. The original cream-and-orange design is preserved. No account, sign-in, or sign-up is required for visitors.
 
 The backend uses TMDB with credentials from a local `.env` file. Wikidata and other unauthenticated movie-data fallbacks have been removed. A small footer Credits link opens `/credits`, with the official TMDB logo, its required API notice, and JustWatch streaming-data attribution.
 
@@ -35,6 +35,7 @@ If the credential is missing or rejected, the app explains the configuration err
 npm run lint
 npm run test:dates
 npm run test:api
+npm run test:titles
 npm run test:seo
 npm run build
 npm run preview
@@ -83,23 +84,23 @@ Runtime credentials belong in Netlify's environment settings, not `[build.enviro
 
 Once the domain is ready, set `SITE_URL` to its full HTTPS origin in both hosting projects and redeploy. Until then the current host is used; no domain is hardcoded. SEO includes server-rendered home/movie content, per-route titles and descriptions, canonical links, social cards, factual structured data, crawlable film links, live `/sitemap.xml` and `/robots.txt`, and real HTTP 404/503 responses. Preview deployments are not indexed. See [the SEO and domain guide](docs/seo.md) for Search Console setup and deployment checks.
 
-The popcorn buddy offers real surprise films, another pick without repeats in its current pool, direct film navigation, session dismissal, and reduced-motion support. Its vector character matches the site palette.
+The popcorn buddy offers real surprise films, another pick without repeats in its current pool, direct film navigation, session dismissal, and reduced-motion support. Drag it with a mouse or touch to reposition it; focused arrow keys also move it (Shift moves farther). Its position is kept within the visible viewport, adjusted on resize, and remembered per tab. A drag does not open a film pick; clicking or keyboard activation still does. Its vector character matches the site palette.
 
 ## What works
 
 - The Cinemine homepage: Cinemine logo and lowercase wordmark on the left, navigation at the top, a large upright CinePick poster slider, and trending movie cards.
-- On phones (up to 760 px), the homepage is one scrolling page with CinePicks, trending films, the full movie finder, Where to watch, and the release calendar. A visible sticky section navigation replaces the mobile menu. Search tabs, country selection, date filters, previews, and pagination work inline; the calendar loads dates when approached. Desktop retains its separate pages. There is one main landmark and one footer, and mobile section links work from film pages and on direct hash URLs.
+- On phones (up to 760 px), a visible sticky tab navigation opens separate pages for Explore, Find a film (`/find-my-movie`), Where to watch, and Calendar. Each page shows its own feature, with one main landmark and one footer. Mobile search opens the full movie finder page; desktop keeps its search dialog. The homepage contains CinePicks and trending films. Older scrolling-section URLs redirect to the corresponding feature pages.
 - Cream typography, burnt-orange accents, charcoal backgrounds, and restrained cool tones in the slider. No sidebar, rotating gradient poster substitutes, account buttons, or work-in-progress controls.
 - The provided `public/images/cinemine-logo.jpg` is used in the header, browser favicon, and Apple touch icon.
 - Slider arrows, selection dots, horizontal swipe, and keyboard arrows/Home/End. Artwork stays upright and uncropped. Slides do not autoplay, so visitors can read the synopsis.
 - Real poster and backdrop URLs mapped from TMDB. When a primary poster is missing, the server checks TMDB’s alternate posters across languages. Missing/broken posters have an accessible fallback without inventing artwork or hiding real releases. Posters below the fold lazy-load with reserved aspect ratios.
-- Trending today uses TMDB's daily movie trends, keeping the source rank and up to 20 unique films. View all expands the collection. The carousel uses a separate India now-playing pool, excludes all trending IDs, and rotates its five-film selection each day in India.
+- Trending today uses TMDB's combined daily trends, with All / Movies / Series filters and up to 20 unique titles in source rank. View all expands the collection. The carousel uses a separate India now-playing movie pool, excludes the typed trending identities, and rotates its five-film selection each day in India.
 - Small additions: keyboard search with Cmd/Ctrl+K, movie-sharing with native share/copy/manual-link fallbacks, a reading-progress line and adaptive back-to-top control, and poster hover/focus hints.
-- One shared search dialog, opened from navigation. Title autocomplete queries TMDB, supports keyboard selection, and cancels stale requests.
-- Mood and description searches query the live discovery API across the catalogue, with genre, excluded genre, original-language, and strict runtime filters. All selected moods must match; moods remain genre-derived and description input uses explicit keywords. Similar-film searches use movie-specific recommendations or discovery for shared cast/directors, then verify selected facts and exclude the reference film. Show more films follows source pages and excludes already shown IDs. No requirements are silently relaxed.
+- Title search and Where to watch default to All, with Movies and Series filters. Combined search filters out people and keeps movies and series with the same numeric TMDB ID separate. Source pagination is available in search results. Autocomplete supports keyboard selection and cancels stale requests. Desktop opens a shared search dialog; mobile opens the dedicated finder page.
+- Mood and description searches query the live discovery API across movies and series, with genre, excluded genre, original-language, and strict runtime filters (episode runtime for series). All selected moods must match; moods remain genre-derived and description input uses explicit keywords. Similar-film searches use movie-specific recommendations or discovery for shared cast/directors, then verify selected facts and exclude the reference title including its type. Show more titles follows source pages and excludes already shown IDs. No requirements are silently relaxed.
 - Search state is retained per tab while open. Movie previews replace the dialog contents, with Back to results. Focus trapping, Escape, visible close controls, and trigger restoration are supported.
-- Film pages include posters, overview, runtime, original language, genres, directors, and a supplied trailer when present. Otherwise visitors can search for trailers.
-- The dedicated `/where-to-watch` page lets visitors search a movie title, choose a match, and see a simple box of unique platform logos and names. The same box appears in movie details and previews. Availability comes from JustWatch through TMDB. Country selectors use the complete live list of supported streaming regions, default to India, and start with the selected release country in calendar previews. The box shows platform logos and names without an attribution caption, external watch button, or category labels. Missing listings and failed requests have separate states, with retry on failure.
+- Movie and series pages include artwork, synopsis, source genres, original language, cast, streaming platforms, sharing, and trailers. Series pages at `/series/:id` show creators, episode runtime, season/episode counts, status, networks, and expandable season summaries. Missing facts stay unknown. Movie pages keep `/movie/:id`. Series sharing, previews, metadata, sitemap URLs, and mascot picks use the correct title type.
+- The dedicated `/where-to-watch` page lets visitors search a movie or series title, choose a match, and see a simple box of unique platform logos and names. The same box appears in movie details and previews. Availability comes from JustWatch through TMDB. Country selectors use the complete live list of supported streaming regions, default to India, and start with the selected release country in calendar previews. The box shows platform logos and names without an attribution caption, external watch button, or category labels. Missing listings and failed requests have separate states, with retry on failure.
 - `/calendar` opens to the current month and India. Previous/next, Today, month/list views, country, genre, original-language, release-type, local title filtering, and clearing filters work. Mobile defaults to a readable date-grouped list.
 - Calendar cells show at most two entries with a `+N more` day-details action. Clicking a film opens its regional release preview.
 
@@ -131,7 +132,7 @@ See [the backend integration notes](docs/api-integration.md) for the API contrac
 
 ## Validation
 
-The production client/SSR builds, 14 provider/deployment-handler tests, eight SEO tests, and five calendar/date tests pass. New regressions cover combined filters, exact runtime boundaries, duplicate IDs across source pages, reference-film exclusion, shared cast/director constraints, distinct homepage pools, and both hosting adapters.
+The production client/SSR builds and provider, combined-catalogue, SEO, and calendar/date tests pass. Combined-catalogue regressions cover colliding movie/series IDs, people/adult filtering, series facts, episode-runtime limits, keyword-backed romantic series, mixed pagination, cast/creator recommendations, TV watch providers, both deployment adapters, and TVSeries structured data. New regressions cover combined filters, exact runtime boundaries, duplicate IDs across source pages, reference-film exclusion, shared cast/director constraints, distinct homepage pools, and both hosting adapters.
 
 Live checks verified 20 unique trending films, five separate carousel films with no overlap, 29 Hindi comedies matching the runtime filter plus 35 additional unique results, and reference-specific recommendations. Chrome checks at 390 and 1440 px verified mood/description/similar-film searches, pagination, slider navigation, focus restoration, and no horizontal overflow or JavaScript errors. Delayed-response and pagination-error checks verify stale requests are ignored, existing results remain visible, and retries add only unique films. Counts will change with the source. Hosted Vercel/Netlify deployments require redeployment and have not been verified from this workspace.
 

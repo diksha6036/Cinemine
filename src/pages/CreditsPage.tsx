@@ -7,7 +7,7 @@ export function CreditsPage() {
       <section aria-labelledby="tmdb-credit-title">
         <a className="credits-logo" href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer" aria-label="Visit The Movie Database"><img src="/images/tmdb-logo.svg" alt="TMDB" width="88" /></a>
         <h2 id="tmdb-credit-title">The Movie Database</h2>
-        <p>Movie information and artwork are supplied through TMDB.</p>
+        <p>Movie and series information and artwork are supplied through TMDB.</p>
         <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
       </section>
       <section aria-labelledby="justwatch-credit-title">

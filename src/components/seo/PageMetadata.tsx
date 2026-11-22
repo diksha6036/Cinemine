@@ -33,5 +33,5 @@ export function PageMetadata({ movie, status = 200 }: { movie?: SearchMovie | nu
 export function RouteMetadata() {
   const { pathname } = useLocation()
   const { error } = useCatalogue()
-  return pathname.startsWith('/movie/') ? null : <PageMetadata status={['/', '/sitemap'].includes(pathname) && error ? 503 : 200} />
+  return /^\/(movie|series)\//.test(pathname) ? null : <PageMetadata status={['/', '/sitemap'].includes(pathname) && error ? 503 : 200} />
 }

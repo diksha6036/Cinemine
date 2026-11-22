@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseEnv } from 'node:util'
 import { readFileSync } from 'node:fs'
-import { homeFilms, getFilms } from './provider.mjs'
+import { homeCatalogue, getTitles } from './titles.mjs'
 import { createMovieSitemapCache, sitemapIndexXml, pageSitemapXml, movieSitemapXml } from './sitemaps.mjs'
 import { cleanOrigin, createMetadata, escapeHtml, renderHead, scriptJson } from '../shared/seo.mjs'
 
@@ -43,18 +43,18 @@ export async function renderDocument(request, options = {}) {
   if (pathname === '/sitemap-pages.xml') return { status: 200, headers: xmlHeaders, body: pageSitemapXml(origin) }
   if (pathname === '/sitemap-movies.xml') {
     try {
-      const result = await movieSitemaps.get(homeFilms)
+      const result = await movieSitemaps.get(homeCatalogue)
       return { status: 200, headers: { ...xmlHeaders, 'X-Sitemap-Cache': result.stale ? 'stale' : 'fresh' }, body: movieSitemapXml(origin, result.movies) }
     } catch { return { status: 503, headers: { ...headers, 'Cache-Control': 'no-store', 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' }, body: 'The sitemap is temporarily unavailable. Please retry.' } }
   }
   const page = { ...location, status: 200, today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()) }
   try {
-    if (pathname === '/' || pathname === '/sitemap') page.home = { ...await homeFilms(), refreshedAt: new Date().toISOString() }
-    else if (/^\/movie\/[1-9]\d*$/.test(pathname)) {
-      const [movie] = await getFilms([pathname.split('/').at(-1)])
+    if (pathname === '/' || pathname === '/sitemap') page.home = { ...await homeCatalogue(), refreshedAt: new Date().toISOString() }
+    else if (/^\/(movie|series)\/[1-9]\d*$/.test(pathname)) {
+      const [movie] = await getTitles([{ id: pathname.split('/').at(-1), mediaType: pathname.startsWith('/series/') ? 'tv' : 'movie' }])
       if (movie) page.movie = movie
       else { page.status = 404; page.error = 'This film could not be found.' }
-    } else if (!['/calendar', '/where-to-watch', '/credits'].includes(pathname)) page.status = 404
+    } else if (!['/calendar', '/find-my-movie', '/where-to-watch', '/credits'].includes(pathname)) page.status = 404
   } catch (error) {
     page.status = error?.status === 404 ? 404 : 503
     page.error = page.status === 404 ? 'This film could not be found.' : 'Film information is temporarily unavailable. Please try again.'

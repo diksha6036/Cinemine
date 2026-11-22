@@ -2,24 +2,25 @@ import { useEffect, useId, useState } from 'react'
 import { CircleAlert, MonitorPlay } from 'lucide-react'
 import { api } from '../../lib/api'
 import { WatchCountrySelect } from './WatchCountrySelect'
+import type { MediaType } from '../../types/movie'
 
 interface WatchAvailability {
   countryCode: string
   groups: { type: string; label: string; providers: { id: number; name: string; logoUrl: string }[] }[]
 }
 
-interface WhereToWatchProps { movieId: string; countryCode?: string; headingLevel?: 'h2' | 'h3'; showCountrySelector?: boolean }
+interface WhereToWatchProps { movieId: string; mediaType?: MediaType; countryCode?: string; headingLevel?: 'h2' | 'h3'; showCountrySelector?: boolean }
 
 export function WhereToWatch(props: WhereToWatchProps) {
-  return <WatchAvailabilityPanel key={`${props.movieId}:${props.countryCode ?? 'IN'}`} {...props} />
+  return <WatchAvailabilityPanel key={`${props.mediaType ?? 'movie'}:${props.movieId}:${props.countryCode ?? 'IN'}`} {...props} />
 }
 
-function WatchAvailabilityPanel({ movieId, countryCode: initialCountryCode = 'IN', headingLevel: Heading = 'h2', showCountrySelector = true }: WhereToWatchProps) {
+function WatchAvailabilityPanel({ movieId, mediaType = 'movie', countryCode: initialCountryCode = 'IN', headingLevel: Heading = 'h2', showCountrySelector = true }: WhereToWatchProps) {
   const titleId = useId()
   const [countryCode, setCountryCode] = useState(initialCountryCode)
   const [result, setResult] = useState<{ key: string; data?: WatchAvailability; error?: string } | null>(null)
   const [retry, setRetry] = useState(0)
-  const requestKey = `${movieId}:${countryCode}:${retry}`
+  const requestKey = `${mediaType}:${movieId}:${countryCode}:${retry}`
   const current = result?.key === requestKey ? result : null
   const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) ?? countryCode
   const providers = (current?.data?.groups.flatMap(group => group.providers) ?? []).filter((provider, index, all) => all.findIndex(entry => entry.id === provider.id) === index)
@@ -27,12 +28,12 @@ function WatchAvailabilityPanel({ movieId, countryCode: initialCountryCode = 'IN
   useEffect(() => {
     const controller = new AbortController()
     let active = true
-    const parameters = new URLSearchParams({ id: movieId, country: countryCode })
-    api<WatchAvailability>(`/api/movies/watch-providers?${parameters}`, controller.signal)
+    const parameters = new URLSearchParams({ id: movieId, mediaType, country: countryCode })
+    api<WatchAvailability>(`/api/titles/watch-providers?${parameters}`, controller.signal)
       .then(data => { if (active) setResult({ key: requestKey, data }) })
       .catch(() => { if (active) setResult({ key: requestKey, error: 'Couldn’t load availability. Please try again.' }) })
     return () => { active = false; controller.abort() }
-  }, [movieId, countryCode, requestKey])
+  }, [movieId, mediaType, countryCode, requestKey])
 
   return <div className="watch-availability"><section className="where-to-watch" aria-labelledby={titleId}>
     <div className={`watch-heading${showCountrySelector ? ' watch-heading-with-country' : ''}`}><Heading id={titleId}>Where to watch</Heading>{showCountrySelector ? <WatchCountrySelect value={countryCode} onChange={setCountryCode} hideLabel /> : <span>In {countryName}</span>}</div>

@@ -4,7 +4,8 @@ import {mkdtempSync,rmSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
 import {createMetadata,renderHead,scriptJson,cleanOrigin} from '../shared/seo.mjs'
-import {renderDocument,requestLocation,sitemapXml} from '../server/html.mjs'
+import {renderDocument,requestLocation} from '../server/html.mjs'
+import {movieSitemapXml,pageSitemapXml} from '../server/sitemaps.mjs'
 
 const movie={id:'27205',title:'Inception',releaseYear:2010,shortDescription:'A thief enters dreams.',genres:['Science Fiction'],runtimeMinutes:148,directors:['Christopher Nolan'],posterUrl:'https://image.tmdb.org/t/p/w500/poster.jpg'}
 const template='<!doctype html><html><head><!--seo:start--><title>Default</title><!--seo:end--></head><body><div id="root"></div></body></html>'
@@ -33,7 +34,7 @@ test('canonical origin can be shared between Vercel and Netlify and omits query 
  })
 })
 test('sitemap deduplicates real movie URLs and escapes XML',()=>{
- const xml=sitemapXml('https://cinemine.example',[movie,movie]);assert.equal((xml.match(/\/movie\/27205/g)??[]).length,1);assert.match(xml,/<loc>https:\/\/cinemine.example\/calendar<\/loc>/)
+ const xml=movieSitemapXml('https://cinemine.example',[movie,movie])+pageSitemapXml('https://cinemine.example');assert.equal((xml.match(/\/movie\/27205/g)??[]).length,1);assert.match(xml,/<loc>https:\/\/cinemine.example\/calendar<\/loc>/)
 })
 test('robots and true missing pages work without a data credential or source request',async()=>{
  await isolated(async()=>{

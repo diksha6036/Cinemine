@@ -22,7 +22,7 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController()
     let active = true
     setLoading(true); setError('')
-    api<{ movies: SearchMovie[]; spotlights: SearchMovie[]; spotlightError: string; refreshedAt: string }>('/api/movies/featured', controller.signal).then(data => { if (active) { setMovies(data.movies); setSpotlights(data.spotlights); setSpotlightError(data.spotlightError); setRefreshedAt(data.refreshedAt) } }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load the collection.') }).finally(() => { if (active) setLoading(false) })
+    api<{ movies: SearchMovie[]; spotlights: SearchMovie[]; spotlightError: string; refreshedAt: string }>('/api/titles/featured', controller.signal).then(data => { if (active) { setMovies(data.movies); setSpotlights(data.spotlights); setSpotlightError(data.spotlightError); setRefreshedAt(data.refreshedAt) } }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load the collection.') }).finally(() => { if (active) setLoading(false) })
     return () => { active = false; controller.abort() }
   }, [generation, page.home])
   return <CatalogueContext.Provider value={{ movies, spotlights, spotlightError, loading, error, refreshedAt, reload }}>{children}</CatalogueContext.Provider>

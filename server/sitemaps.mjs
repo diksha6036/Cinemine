@@ -1,6 +1,7 @@
 import { escapeHtml } from '../shared/seo.mjs'
+import { mediaKey, titlePath } from '../shared/media.mjs'
 
-export const PAGE_PATHS = ['/', '/calendar', '/where-to-watch', '/credits', '/sitemap']
+export const PAGE_PATHS = ['/', '/find-my-movie', '/calendar', '/where-to-watch', '/credits', '/sitemap']
 export const CRAWLER_PATHS = ['/robots.txt', '/sitemap.xml', '/sitemap-pages.xml', '/sitemap-movies.xml']
 export const isCrawlerPath = pathname => CRAWLER_PATHS.includes(pathname)
 const declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -13,8 +14,8 @@ export function sitemapIndexXml(origin) {
 }
 export function pageSitemapXml(origin) { return urlSet(origin, PAGE_PATHS) }
 export function movieSitemapXml(origin, movies) {
-  const ids = [...new Set(movies.map(movie => String(movie.id)).filter(id => /^[1-9]\d*$/.test(id)))]
-  return urlSet(origin, ids.map(id => `/movie/${id}`))
+  const titles = [...new Map(movies.filter(movie => /^[1-9]\d*$/.test(String(movie.id))).map(movie => [mediaKey(movie), movie])).values()]
+  return urlSet(origin, titles.map(titlePath))
 }
 
 // A warm function can preserve real, previously discovered URLs through a brief
@@ -30,9 +31,9 @@ export function createMovieSitemapCache(now = Date.now) {
       pending = (async () => {
         try {
           const home = await load()
-          const ids = [...new Set([...home.movies, ...home.spotlights].map(movie => String(movie.id)).filter(id => /^[1-9]\d*$/.test(id)))]
-          if (!ids.length) throw new Error('No movie URLs are available.')
-          snapshot = { movies: ids.map(id => ({ id })), checked: now() }
+          const titles = [...new Map([...home.movies, ...home.spotlights].filter(movie => /^[1-9]\d*$/.test(String(movie.id))).map(movie => [mediaKey(movie), { id: String(movie.id), mediaType: movie.mediaType ?? 'movie' }])).values()]
+          if (!titles.length) throw new Error('No title URLs are available.')
+          snapshot = { movies: titles, checked: now() }
           return { movies: snapshot.movies, stale: false }
         } catch (error) {
           if (snapshot && now() - snapshot.checked < staleFor) return { movies: snapshot.movies, stale: true }

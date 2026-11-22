@@ -1,6 +1,7 @@
 import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms, watchProviders, watchRegions } from './provider.mjs'
 import { isConfigured } from './env.mjs'
 import { readDiscoveryOptions } from './discovery.mjs'
+import { discoverTitles, getTitles, homeCatalogue, readMediaType, readTitleOptions, searchTitles, similarTitles, trendingTitles } from './titles.mjs'
 
 const windows = new Map()
 function send(response, status, body) {
@@ -26,6 +27,33 @@ export async function handleApi(request, response) {
   try {
     if (url.pathname === '/api/health') send(response, 200, { provider: 'TMDB', credentialsRequired: true, configured: isConfigured() })
     else if (url.pathname === '/api/watch-regions') send(response, 200, { countries: await watchRegions() })
+    else if (url.pathname.startsWith('/api/titles/')) {
+      const action = url.pathname.split('/').at(-1)
+      if (action === 'featured') send(response, 200, { ...await homeCatalogue(), source: 'TMDB', refreshedAt: new Date().toISOString() })
+      else if (action === 'trending') send(response, 200, { titles: await trendingTitles(readMediaType(url.searchParams.get('mediaType') ?? 'all')) })
+      else if (action === 'search') {
+        const query = (url.searchParams.get('q') ?? '').trim(), page = Number(url.searchParams.get('page') ?? '1'), limit = Number(url.searchParams.get('limit') ?? '20')
+        const mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'all')
+        if (query.length < 2 || query.length > 120 || !Number.isInteger(page) || page < 1 || page > 500 || !Number.isInteger(limit) || limit < 1 || limit > 20) send(response, 400, { error: 'Enter a title between 2 and 120 characters and choose a valid results page.' })
+        else send(response, 200, { ...await searchTitles(query, { mediaType, page, limit }), source: 'TMDB' })
+      } else if (action === 'discover') send(response, 200, { ...await discoverTitles(readTitleOptions(url.searchParams)), refreshedAt: new Date().toISOString() })
+      else if (action === 'recommendations') {
+        const { titles, reference, nextPage } = await similarTitles(readTitleOptions(url.searchParams, true))
+        send(response, 200, { results: titles.map(movie => ({ movie, reason: recommendationReason(movie, reference) })), nextPage })
+      } else if (action === 'details' || action === 'watch-providers') {
+        const id = url.searchParams.get('id') ?? '', mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'movie', false)
+        if (!/^[1-9]\d{0,9}$/.test(id)) send(response, 400, { error: 'Choose a valid title.' })
+        else if (action === 'details') {
+          const [movie] = await getTitles([{ id, mediaType }])
+          send(response, movie ? 200 : 404, movie ? { movie } : { error: 'This title could not be found.' })
+        } else {
+          const country = url.searchParams.get('country') ?? 'IN'
+          if (!/^[A-Z]{2}$/.test(country)) send(response, 400, { error: 'Choose a valid country.' })
+          else if (!(await watchRegions()).some(region => region.code === country)) send(response, 400, { error: 'Streaming availability is not supported for this country.' })
+          else send(response, 200, await watchProviders(id, country, mediaType))
+        }
+      } else send(response, 404, { error: 'This API endpoint does not exist.' })
+    }
     else if (url.pathname === '/api/movies/featured') send(response, 200, { ...await homeFilms(), source: 'TMDB', refreshedAt: new Date().toISOString() })
     else if (url.pathname === '/api/movies/discover') {
       const filters = readDiscoveryOptions(url.searchParams, GENRES.map(genre => genre.id))

@@ -25,12 +25,12 @@
       "status": 308
     },
     {
-      "src": "^/(calendar|sitemap|where-to-watch|credits)/?$",
+      "src": "^/(calendar|find-my-movie|sitemap|where-to-watch|credits)/?$",
       "dest": "/api/pages?_path=/$1"
     },
     {
-      "src": "^/movie/([^/]+)/?$",
-      "dest": "/api/pages?_path=/movie/$1"
+      "src": "^/(movie|series)/([^/]+)/?$",
+      "dest": "/api/pages?_path=/$1/$2"
     },
     {
       "src": "^/(robots[.]txt|sitemap(?:-pages|-movies)?[.]xml)$",

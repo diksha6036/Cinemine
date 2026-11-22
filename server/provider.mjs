@@ -20,7 +20,7 @@ function configuration() {
   return config
 }
 
-async function tmdb(path, parameters = {}) {
+export async function tmdb(path, parameters = {}) {
   const config = configuration()
   const cacheKey = `${state.scope}:${path}?${new URLSearchParams(parameters)}`
   const cached = state.requests.get(cacheKey)
@@ -82,13 +82,38 @@ export function normalizeFilm(record, images = {}) {
   const trailer = trailers.find(video => video.official) ?? trailers[0]
   const posterPath = record.poster_path || (record.images?.posters ?? []).find(poster => imageUrl(poster.file_path))?.file_path
   return {
-    id: String(record.id), title: record.title || record.original_title || 'Untitled film', releaseYear: year ? Number(year) : null,
+    id: String(record.id), mediaType: 'movie', title: record.title || record.original_title || 'Untitled film', releaseYear: year ? Number(year) : null,
     genres: genres.map(genre => genre.name), genreIds, posterUrl: imageUrl(posterPath, 'w500', images.base), backdropUrl: imageUrl(record.backdrop_path, 'w1280', images.base),
     shortDescription: record.overview || 'A synopsis is not available for this film.', originalLanguage: record.original_language || 'und', originalLanguages: record.original_language ? [record.original_language] : [],
     runtimeMinutes: Number.isFinite(record.runtime) && record.runtime > 0 ? record.runtime : null, moods: moodsForGenres(genreIds),
     directors: directors.map(person => person.name), directorIds: directors.map(person => String(person.id)), castIds: (record.credits?.cast ?? []).slice(0, 20).map(person => String(person.id)),
+    cast: (record.credits?.cast ?? []).slice(0, 12).map(person => ({ id: String(person.id), name: person.name, character: person.character || '' })),
     trailerUrl: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : '', ratingValue: record.vote_count > 0 ? record.vote_average : null,
     source: 'TMDB', sourceUrl: `https://www.themoviedb.org/movie/${record.id}`, lastCheckedAt: new Date().toISOString(),
+  }
+}
+export function normalizeSeries(record, images = {}) {
+  const credits = record.aggregate_credits ?? record.credits ?? {}
+  const base = normalizeFilm({ ...record, title: record.name || record.original_name, release_date: record.first_air_date, credits }, images)
+  const durations = [...new Set((record.episode_run_time ?? []).filter(value => Number.isFinite(value) && value > 0))].sort((a, b) => a - b)
+  const latestRuntime = record.last_episode_to_air?.runtime
+  const runtime = durations.length ? Math.max(...durations) : Number.isFinite(latestRuntime) && latestRuntime > 0 ? latestRuntime : null
+  const keywords = (record.keywords?.results ?? []).map(keyword => keyword.name?.toLowerCase()).filter(Boolean)
+  const moods = []
+  if (base.genreIds.includes(35)) moods.push('Funny', 'Feel-good')
+  if (base.genreIds.includes(18)) moods.push('Emotional')
+  if (base.genreIds.some(id => [10759, 9648].includes(id)) || keywords.some(name => ['thriller', 'horror'].includes(name))) moods.push('Thrilling')
+  if (base.genreIds.some(id => [10765, 9648].includes(id))) moods.push('Mind-bending')
+  if (keywords.includes('romance')) moods.push('Romantic')
+  return { ...base, mediaType: 'tv', runtimeMinutes: runtime, episodeRuntimeMinutes: durations, moods,
+    creators: (record.created_by ?? []).map(person => person.name), creatorIds: (record.created_by ?? []).map(person => String(person.id)),
+    numberOfSeasons: Number.isInteger(record.number_of_seasons) ? record.number_of_seasons : null,
+    numberOfEpisodes: Number.isInteger(record.number_of_episodes) ? record.number_of_episodes : null,
+    firstAirDate: record.first_air_date || '', lastAirDate: record.last_air_date || '', status: record.status || '',
+    networks: (record.networks ?? []).map(network => network.name), keywordNames: keywords,
+    cast: (credits.cast ?? []).slice(0, 12).map(person => ({ id: String(person.id), name: person.name, character: person.roles?.map(role => role.character).filter(Boolean).join(' / ') || person.character || '' })),
+    seasons: (record.seasons ?? []).map(season => ({ id: String(season.id), number: season.season_number, name: season.name, episodeCount: Number.isInteger(season.episode_count) ? season.episode_count : null, airDate: season.air_date || null, overview: season.overview || '', posterUrl: imageUrl(season.poster_path, 'w185', images.base) })),
+    sourceUrl: `https://www.themoviedb.org/tv/${record.id}`,
   }
 }
 async function imagesConfiguration() {
@@ -119,6 +144,27 @@ export async function getFilms(ids) {
     if (results.every(result => !result.ok)) throw results[0].error
   }
   return valid.flatMap(id => state.movies.get(id)?.expires > Date.now() ? [state.movies.get(id).movie] : [])
+}
+export async function getSeries(ids) {
+  configuration()
+  const valid = [...new Set(ids.map(String))].filter(id => /^[1-9]\d*$/.test(id))
+  const missing = valid.filter(id => !state.movies.has(`tv:${id}`) || state.movies.get(`tv:${id}`).expires <= Date.now())
+  if (missing.length) {
+    const images = await imagesConfiguration()
+    const results = await mapBounded(missing, async id => {
+      const record = await tmdb(`/tv/${id}`, { language: 'en-US', append_to_response: 'aggregate_credits,videos,keywords' })
+      if (record.adult) return null
+      if (!imageUrl(record.poster_path)) {
+        try { record.images = await tmdb(`/tv/${id}/images`) } catch { /* Preserve real titles even without artwork. */ }
+      }
+      const movie = normalizeSeries(record, images)
+      if (state.movies.size >= 1000) state.movies.delete(state.movies.keys().next().value)
+      state.movies.set(`tv:${id}`, { movie, expires: Date.now() + TTL })
+      return movie
+    })
+    if (results.every(result => !result.ok)) throw results[0].error
+  }
+  return valid.flatMap(id => state.movies.get(`tv:${id}`)?.expires > Date.now() ? [state.movies.get(`tv:${id}`).movie] : [])
 }
 export async function featuredFilms() {
   const data = await tmdb('/trending/movie/day', { language: 'en-US' })
@@ -196,7 +242,7 @@ export async function similarFilms({ id, aspects = [], page = 1, exclude = [] })
 }
 export function recommendationReason(movie, reference) {
   const facts = similarityFacts(movie, reference)
-  return [facts.genres.length ? `Shared genres: ${movie.genres.filter((_, index) => facts.genres.includes(movie.genreIds[index])).join(', ')}.` : '', facts.cast ? 'Shares cast members.' : '', facts.director ? 'Shares a director.' : ''].filter(Boolean).join(' ') || 'Recommended from the reference film.'
+  return [facts.genres.length ? `Shared genres: ${movie.genres.filter((_, index) => facts.genres.includes(movie.genreIds[index])).join(', ')}.` : '', facts.cast ? 'Shares cast members.' : '', facts.director ? 'Shares a director or creator.' : ''].filter(Boolean).join(' ') || 'Recommended from the reference title.'
 }
 export async function searchFilms(query) {
   const data = await tmdb('/search/movie', { query, language: 'en-US', include_adult: 'false', page: '1' })
@@ -211,8 +257,8 @@ export async function watchRegions() {
   if (!countries.length) throw new Error('Could not load countries with streaming availability. Please retry.')
   return countries
 }
-export async function watchProviders(id, country = 'IN') {
-  const data = await tmdb(`/movie/${id}/watch/providers`)
+export async function watchProviders(id, country = 'IN', mediaType = 'movie') {
+  const data = await tmdb(`/${mediaType}/${id}/watch/providers`)
   const regional = data.results?.[country]
   const categories = [['flatrate', 'Subscription'], ['free', 'Free'], ['ads', 'Free with ads'], ['rent', 'Rent'], ['buy', 'Buy']]
   const groups = categories.flatMap(([type, label]) => {
@@ -229,7 +275,7 @@ export async function watchProviders(id, country = 'IN') {
     const link = new URL(regional?.link)
     if (link.origin === 'https://www.themoviedb.org' && !link.username && !link.password) watchUrl = link.href
   } catch { /* A missing source link must not invent a playback URL. */ }
-  return { countryCode: country, groups, watchUrl, source: 'JustWatch', refreshedAt: new Date().toISOString() }
+  return { countryCode: country, mediaType, groups, watchUrl, source: 'JustWatch', refreshedAt: new Date().toISOString() }
 }
 export function publicationEvents(releaseData, movie, country, from, to, requestedType = '') {
   const regional = (releaseData.results ?? []).find(entry => entry.iso_3166_1 === country)
