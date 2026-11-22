@@ -17,6 +17,7 @@
 .title-cast span { display: block; margin-top: 4px; color: var(--color-muted); }
 .watch-search-page .media-type-filter { margin-block: 0 24px; }
 .search-dialog .media-type-filter button { font-size: .875rem; }
+.search-tab-panel .autocomplete-options { position: static; margin-top: 8px; max-height: 260px; }
 @media (max-width: 700px) {
   .media-type-filter button { padding-inline: 14px; }
   .movie-meta { column-gap: 7px; }

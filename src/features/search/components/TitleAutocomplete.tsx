@@ -26,7 +26,13 @@ export function TitleAutocomplete({ label, value, onChange, onSelect, mediaType 
     return () => { cancelled = true; controller.abort(); window.clearTimeout(timer) }
   }, [value, retry, mediaType])
   function choose(movie: SearchMovie) { setOpen(false); setActive(-1); onSelect(movie) }
-  return <div className="autocomplete" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
+  return <div className="autocomplete" onBlur={event => {
+    const form = event.currentTarget.closest('form')
+    // Keep the form stable until a button click completes; closing an inline list
+    // on pointer-down would move the button before pointer-up.
+    if (form && event.relatedTarget instanceof Node && form.contains(event.relatedTarget)) return
+    if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+  }}>
     <label htmlFor={id}>{label}</label>
     <input id={id} role="combobox" aria-autocomplete="list" aria-expanded={open && status === 'ready' && suggestions.length > 0} aria-controls={`${id}-options`} aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined} autoComplete="off" maxLength={120} placeholder="Try Inception, Wednesday, or Panchayat" value={value} onFocus={() => setOpen(true)} onChange={event => { onChange(event.target.value); setOpen(true) }} onKeyDown={event => {
       if (event.key === 'ArrowDown' && suggestions.length) { event.preventDefault(); setOpen(true); setActive((active + 1) % suggestions.length) }

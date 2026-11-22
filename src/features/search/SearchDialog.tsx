@@ -14,7 +14,7 @@ import { interpretDescription } from '../../lib/discovery'
 import type { DescriptionFilters } from '../../lib/discovery'
 import type { SearchMovie, SearchRequest, SearchResult, SearchTab, SimilarAspect } from './types/search'
 
-const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a movie' }, { id: 'similar', label: 'Similar to…' }]
+const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a title' }, { id: 'similar', label: 'Similar to…' }]
 interface Outcome { request: string; results: SearchResult[]; error?: string; nextPage?: number | null; endpoint?: string; parameters?: string }
 
 export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false }: { initial: SearchRequest; onClose: () => void; returnFocusTo: HTMLElement | null; embedded?: boolean }) {
@@ -116,7 +116,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
       if (filters.languages.length) parameters.set('languages', filters.languages.join(','))
       if (filters.runtime) parameters.set('runtime', String(filters.runtime))
     } else {
-      request = (reference?.title ?? referenceQuery) + (aspects.length ? ' · ' + aspects.join(', ') : ' · Related films')
+      request = (reference?.title ?? referenceQuery) + (aspects.length ? ' · ' + aspects.join(', ') : ' · Related titles')
       if (!reference) error = 'Select a reference movie or series from the title suggestions first.'
       else { parameters.set('id', reference.id); parameters.set('referenceType', reference.mediaType ?? 'movie') }
       if (aspects.length) parameters.set('aspects', aspects.join(','))
@@ -139,7 +139,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
 
   const content = <>
     {preview ? <><button type="button" className="text-button preview-back" onClick={() => { setPreview(null); window.setTimeout(() => previewTrigger.current?.focus(), 0) }}><ArrowLeft size={16} /> Back to results</button><MoviePreview movie={preview} titleId={titleId} onNavigate={onClose} /></> : <>
-      <p className="feature-eyebrow">Find your next great film</p><Heading id={titleId}>{embedded ? 'Find movies & series' : 'What would you like to watch?'}</Heading>
+      <p className="feature-eyebrow">Find your next great watch</p><Heading id={titleId}>{embedded ? 'Find movies & series' : 'What would you like to watch?'}</Heading>
       <p className="feature-muted">Search movies and web series by title, mood, description, or something you already enjoy.</p>
       <MediaTypeFilter value={mediaType} onChange={value => { cancelSearch(); setMediaType(value); setOutcomes({}); setDescriptionFilters(null) }} /><div className="search-tabs" role="tablist" aria-label="Search by" onKeyDown={event => {
         const current = tabs.findIndex(item => item.id === tab)
