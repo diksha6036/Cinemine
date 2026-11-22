@@ -10,6 +10,8 @@ The backend uses TMDB only. `server/env.mjs` reads the root `.env` with Node's n
 - `GET /api/movies/discover?genres=35&languages=hi&runtime=120&moods=Funny`: live structured discovery. Optional `withoutGenres`, `page`, and `exclude` parameters support exclusions and unique pagination.
 - `GET /api/movies/recommendations?id=27205&aspects=genres,director`: film-specific recommendations or discovery, enforcing every selected similarity aspect. Supports `page` and `exclude`.
 - `GET /api/movies/27205`: one film's normalized details.
+- `GET /api/watch-regions`: the complete source-backed list of supported streaming countries, sorted by English name.
+- `GET /api/movies/watch-providers?id=27205&country=IN`: JustWatch streaming, rental, and purchase availability from TMDB for any supported streaming country (India by default). Country codes are validated against the live region list.
 - `GET /api/releases?from=2026-11-01&to=2026-11-30&country=IN&genre=18&language=hi&type=Theatrical`: country-specific release events and separate movie records. Genre, language, and type are optional.
 
 ## Calendar normalization
@@ -19,6 +21,8 @@ The backend calls `/3/discover/movie` with region, release-date range, release t
 Date strings preserve the provider's calendar-date component without timezone conversion. Films and events remain separate. Premiere, limited theatrical, theatrical, digital, physical, and TV types are distinct. Missing dates, subscription streaming availability, and dubbed languages are not invented.
 
 ## Images and facts
+
+The `/where-to-watch` search page, movie pages, and previews use `/3/movie/{id}/watch/providers`. The frontend merges subscription, free, ad-supported, rental, and purchase providers into one deduplicated list of logos and names. Only the requested country is shown. The standalone search page and movie availability boxes have country selectors populated from TMDB's `/3/watch/providers/regions`, using the complete source-backed country list rather than the calendar's five-country list. Pages default to India; calendar previews start with the release's selected country. Country changes cancel and disregard stale requests. Country-list loading failures have an independent retry and never substitute a made-up list. No category labels, external watch buttons, or attribution captions are displayed in the availability interface. An empty country result means no availability is listed, not proof that a movie cannot be watched. Failed requests show an independent retry control without blocking movie details. Availability is never inferred from digital release dates. The backend keeps the source categories and TMDB watch URL in its API response and uses the existing server-only credential, five-minute cache, request deduplication, and rate limits. `api/movies/watch-providers.js` and `api/watch-regions.js` expose both endpoints on Vercel; Netlify uses the shared handler. The standalone search page renders on the server without an upstream request and uses the existing cancellable, debounced title autocomplete to choose a film.
 
 The image configuration supplies the secure CDN base. Missing primary posters trigger a lookup of `/3/movie/{id}/images` across languages. Poster and backdrop paths are normalized to image URLs; the frontend displays actual movie posters and an accessible fallback when missing. Overviews, runtime, genres, director/cast IDs, and supplied YouTube trailer URLs come from TMDB details. Original-language filters use original language, not inferred dubbing from spoken languages.
 

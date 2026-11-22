@@ -26,9 +26,10 @@ export function TitleAutocomplete({ label, value, onChange, onSelect }: { label:
   function choose(movie: SearchMovie) { setOpen(false); setActive(-1); onSelect(movie) }
   return <div className="autocomplete" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
     <label htmlFor={id}>{label}</label>
-    <input id={id} role="combobox" aria-autocomplete="list" aria-expanded={open && status === 'ready' && suggestions.length > 0} aria-controls={`${id}-options`} aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined} autoComplete="off" placeholder="Try Inception or The Lunchbox" value={value} onFocus={() => setOpen(true)} onChange={event => { onChange(event.target.value); setOpen(true) }} onKeyDown={event => {
+    <input id={id} role="combobox" aria-autocomplete="list" aria-expanded={open && status === 'ready' && suggestions.length > 0} aria-controls={`${id}-options`} aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined} autoComplete="off" maxLength={120} placeholder="Try Inception or The Lunchbox" value={value} onFocus={() => setOpen(true)} onChange={event => { onChange(event.target.value); setOpen(true) }} onKeyDown={event => {
       if (event.key === 'ArrowDown' && suggestions.length) { event.preventDefault(); setOpen(true); setActive((active + 1) % suggestions.length) }
       if (event.key === 'ArrowUp' && suggestions.length) { event.preventDefault(); setOpen(true); setActive(active < 0 ? suggestions.length - 1 : (active - 1 + suggestions.length) % suggestions.length) }
+      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); setActive(-1) }
       if (event.key === 'Enter' && open && active >= 0 && suggestions[active]) { event.preventDefault(); choose(suggestions[active]) }
     }} />
     {open && status === 'loading' && <p role="status" className="autocomplete-status">Searching films…</p>}

@@ -4,6 +4,7 @@ import { resolve, extname, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { handleApi } from './api.mjs'
 import { handlePage } from './html.mjs'
+import { isCrawlerPath } from './sitemaps.mjs'
 
 const root = resolve(fileURLToPath(new URL('../dist/', import.meta.url)))
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.ico': 'image/x-icon', '.json': 'application/json' }
@@ -16,7 +17,7 @@ const server = createServer(async (request, response) => {
     const candidate = resolve(root, `.${pathname}`)
     if (candidate !== root && !candidate.startsWith(root.endsWith(sep) ? root : root + sep)) { response.writeHead(403); response.end(); return }
     if (pathname.startsWith('/server/')) { response.writeHead(404); response.end('File not found.'); return }
-    if (['/robots.txt', '/sitemap.xml', '/index.html'].includes(pathname) || !extname(pathname)) { await handlePage(request, response); return }
+    if ((isCrawlerPath(pathname) || pathname === '/index.html') || !extname(pathname)) { await handlePage(request, response); return }
     const isFile = await stat(candidate).then(info => info.isFile()).catch(() => false)
     if (!isFile && extname(pathname)) { response.writeHead(404); response.end('File not found.'); return }
     const file = isFile ? candidate : resolve(root, 'index.html')

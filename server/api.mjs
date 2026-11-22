@@ -1,4 +1,4 @@
-import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms } from './provider.mjs'
+import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms, watchProviders, watchRegions } from './provider.mjs'
 import { isConfigured } from './env.mjs'
 import { readDiscoveryOptions } from './discovery.mjs'
 
@@ -25,6 +25,7 @@ export async function handleApi(request, response) {
   windows.set(ip, window && window.until > now ? { ...window, count: window.count + 1 } : { until: now + 60000, count: 1 })
   try {
     if (url.pathname === '/api/health') send(response, 200, { provider: 'TMDB', credentialsRequired: true, configured: isConfigured() })
+    else if (url.pathname === '/api/watch-regions') send(response, 200, { countries: await watchRegions() })
     else if (url.pathname === '/api/movies/featured') send(response, 200, { ...await homeFilms(), source: 'TMDB', refreshedAt: new Date().toISOString() })
     else if (url.pathname === '/api/movies/discover') {
       const filters = readDiscoveryOptions(url.searchParams, GENRES.map(genre => genre.id))
@@ -37,6 +38,11 @@ export async function handleApi(request, response) {
       const query = (url.searchParams.get('q') ?? '').trim()
       if (query.length < 2 || query.length > 120) send(response, 400, { error: 'Enter a movie title between 2 and 120 characters.' })
       else send(response, 200, { movies: await searchFilms(query), source: 'TMDB', refreshedAt: new Date().toISOString() })
+    } else if (url.pathname === '/api/movies/watch-providers') {
+      const id = url.searchParams.get('id') ?? '', country = url.searchParams.get('country') ?? 'IN'
+      if (!/^[1-9]\d{0,9}$/.test(id) || !/^[A-Z]{2}$/.test(country)) send(response, 400, { error: 'Choose a valid movie and supported country.' })
+      else if (!(await watchRegions()).some(region => region.code === country)) send(response, 400, { error: 'Streaming availability is not supported for this country.' })
+      else send(response, 200, await watchProviders(id, country))
     } else if (/^\/api\/movies\/[1-9]\d*$/.test(url.pathname)) {
       const movies = await getFilms([url.pathname.split('/').at(-1)])
       send(response, movies.length ? 200 : 404, movies.length ? { movie: movies[0] } : { error: 'This film could not be found in the source.' })

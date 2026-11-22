@@ -11,10 +11,14 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
   const url = `${base}${path}`
   const isMovie = /^\/movie\/[1-9]\d*$/.test(path)
   const isCalendar = path === '/calendar'
-  const missing = status === 404 || (!isMovie && !isCalendar && path !== '/')
+  const isDirectory = path === '/sitemap'
+  const isWatchSearch = path === '/where-to-watch'
+  const missing = status === 404 || (!isMovie && !isCalendar && !isDirectory && !isWatchSearch && path !== '/')
   let title = 'Cinemine | Discover Movies & Plan Your Next Movie Night'
   let description = HOME_DESCRIPTION
   if (isCalendar) { title = 'Movie Release Calendar | Cinemine'; description = 'Explore movie release dates by country, genre, language, and release format. Plan your next cinema visit or movie night with Cinemine.' }
+  if (isDirectory) { title = 'Sitemap | Explore Cinemine'; description = 'Browse Cinemine’s movie pages, trending films, and regional release calendar from one simple site directory.' }
+  if (isWatchSearch) { title = 'Where to Watch Movies by Country | Cinemine'; description = 'Search for a movie, choose your country, and see its streaming platforms with provider names and logos on Cinemine.' }
   if (isMovie) {
     title = movie ? `${movie.title}${movie.releaseYear ? ` (${movie.releaseYear})` : ''} | Cinemine` : 'Movie Details | Cinemine'
     description = movie ? `${movie.shortDescription} Explore ${movie.title}'s genres, runtime, director, and trailer on Cinemine.` : 'Explore film details, genres, runtimes, directors, and trailers with Cinemine.'
@@ -27,7 +31,7 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
   const graph = [
     { '@type': 'Organization', '@id': `${base}/#organization`, name: SITE_NAME, url: `${base}/`, logo: `${base}/images/cinemine-logo.jpg`, sameAs: ['https://www.instagram.com/dr.cinemine/'] },
     { '@type': 'WebSite', '@id': `${base}/#website`, name: SITE_NAME, url: `${base}/`, description: HOME_DESCRIPTION, publisher: { '@id': `${base}/#organization` } },
-    { '@type': isCalendar ? 'CollectionPage' : 'WebPage', '@id': `${url}#webpage`, url, name: title, description, isPartOf: { '@id': `${base}/#website` } },
+    { '@type': isCalendar || isDirectory ? 'CollectionPage' : 'WebPage', '@id': `${url}#webpage`, url, name: title, description, isPartOf: { '@id': `${base}/#website` } },
   ]
   const movieSchema = film => ({ '@type': 'Movie', '@id': `${base}/movie/${film.id}#movie`, name: film.title, url: `${base}/movie/${film.id}`, description: film.shortDescription, ...(film.posterUrl ? { image: film.posterUrl } : {}), genre: film.genres, ...(film.runtimeMinutes ? { duration: `PT${film.runtimeMinutes}M` } : {}), ...(film.directors?.length ? { director: film.directors.map(name => ({ '@type': 'Person', name })) } : {}) })
   if (movie && status === 200) {

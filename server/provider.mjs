@@ -202,6 +202,35 @@ export async function searchFilms(query) {
   const data = await tmdb('/search/movie', { query, language: 'en-US', include_adult: 'false', page: '1' })
   return getFilms((data.results ?? []).filter(record => !record.adult).slice(0, 10).map(record => record.id))
 }
+export async function watchRegions() {
+  const data = await tmdb('/watch/providers/regions', { language: 'en-US' })
+  const countries = [...new Map((data.results ?? []).flatMap(region => {
+    if (!/^[A-Z]{2}$/.test(region?.iso_3166_1 ?? '') || typeof region.english_name !== 'string' || !region.english_name.trim()) return []
+    return [[region.iso_3166_1, { code: region.iso_3166_1, name: region.english_name.trim() }]]
+  })).values()].sort((a, b) => a.name.localeCompare(b.name, 'en'))
+  if (!countries.length) throw new Error('Could not load countries with streaming availability. Please retry.')
+  return countries
+}
+export async function watchProviders(id, country = 'IN') {
+  const data = await tmdb(`/movie/${id}/watch/providers`)
+  const regional = data.results?.[country]
+  const categories = [['flatrate', 'Subscription'], ['free', 'Free'], ['ads', 'Free with ads'], ['rent', 'Rent'], ['buy', 'Buy']]
+  const groups = categories.flatMap(([type, label]) => {
+    const seen = new Set()
+    const providers = (Array.isArray(regional?.[type]) ? regional[type] : []).flatMap(provider => {
+      if (!Number.isSafeInteger(provider?.provider_id) || provider.provider_id < 1 || typeof provider.provider_name !== 'string' || !provider.provider_name.trim() || seen.has(provider.provider_id)) return []
+      seen.add(provider.provider_id)
+      return [{ id: provider.provider_id, name: provider.provider_name.trim(), logoUrl: imageUrl(provider.logo_path, 'w92') }]
+    })
+    return providers.length ? [{ type, label, providers }] : []
+  })
+  let watchUrl = ''
+  try {
+    const link = new URL(regional?.link)
+    if (link.origin === 'https://www.themoviedb.org' && !link.username && !link.password) watchUrl = link.href
+  } catch { /* A missing source link must not invent a playback URL. */ }
+  return { countryCode: country, groups, watchUrl, source: 'JustWatch', refreshedAt: new Date().toISOString() }
+}
 export function publicationEvents(releaseData, movie, country, from, to, requestedType = '') {
   const regional = (releaseData.results ?? []).find(entry => entry.iso_3166_1 === country)
   const events = new Map()

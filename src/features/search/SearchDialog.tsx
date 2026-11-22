@@ -14,7 +14,11 @@ import type { SearchMovie, SearchRequest, SearchResult, SearchTab, SimilarAspect
 const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Movie title' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a movie' }, { id: 'similar', label: 'Similar to…' }]
 interface Outcome { request: string; results: SearchResult[]; error?: string; nextPage?: number | null; endpoint?: string; parameters?: string }
 
-export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: SearchRequest; onClose: () => void; returnFocusTo: HTMLElement | null }) {
+export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false }: { initial: SearchRequest; onClose: () => void; returnFocusTo: HTMLElement | null; embedded?: boolean }) {
+  const titleId = embedded ? 'mobile-search-title' : 'search-dialog-title'
+  const resultsId = embedded ? 'mobile-results-heading' : 'results-heading'
+  const tabPrefix = embedded ? 'mobile-tab' : 'tab'
+  const panelPrefix = embedded ? 'mobile-panel' : 'panel'
   const [searching, setSearching] = useState(false)
   const [descriptionFilters, setDescriptionFilters] = useState<DescriptionFilters | null>(null)
   const searchGeneration = useRef(0)
@@ -37,11 +41,12 @@ export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: Sea
   const previewTrigger = useRef<HTMLElement | null>(null)
   useEffect(() => {
     if (preview) {
-      const heading = document.getElementById('search-dialog-title')
+      const heading = document.getElementById(titleId)
       heading?.focus({ preventScroll: true })
       heading?.closest('dialog')?.scrollTo({ top: 0, behavior: 'instant' })
+      if (embedded) heading?.scrollIntoView({ block: 'start' })
     }
-  }, [preview])
+  }, [preview, titleId, embedded])
   const outcome = outcomes[tab]
   function cancelSearch() {
     searchGeneration.current++
@@ -50,7 +55,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: Sea
   }
   function invalidate() { cancelSearch(); setOutcomes(previous => ({ ...previous, [tab]: undefined })) }
   function changeTab(next: SearchTab) { if (next === tab) return; cancelSearch(); setTab(next) }
-  function focusResults() { window.setTimeout(() => document.getElementById('results-heading')?.focus(), 0) }
+  function focusResults() { window.setTimeout(() => document.getElementById(resultsId)?.focus(), 0) }
   async function runSearch(target: SearchTab, request: string, endpoint: string, parameters: URLSearchParams, append = false) {
     const generation = ++searchGeneration.current
     searchController.current?.abort()
@@ -122,9 +127,9 @@ export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: Sea
     ...(descriptionFilters.runtime ? [{ id: 'runtime', label: `Under ${descriptionFilters.runtime} min`, onEdit: () => { setDescriptionFilters({ ...descriptionFilters, runtime: null }); invalidate() } }] : []),
   ] : []
 
-  return <Dialog titleId="search-dialog-title" className="search-dialog" onClose={onClose} returnFocusTo={returnFocusTo}>
-    {preview ? <><button type="button" className="text-button preview-back" onClick={() => { setPreview(null); window.setTimeout(() => previewTrigger.current?.focus(), 0) }}><ArrowLeft size={16} /> Back to results</button><MoviePreview movie={preview} titleId="search-dialog-title" onNavigate={onClose} /></> : <>
-      <p className="feature-eyebrow">Find your next great film</p><h2 id="search-dialog-title">What are you in the mood for?</h2>
+  const content = <>
+    {preview ? <><button type="button" className="text-button preview-back" onClick={() => { setPreview(null); window.setTimeout(() => previewTrigger.current?.focus(), 0) }}><ArrowLeft size={16} /> Back to results</button><MoviePreview movie={preview} titleId={titleId} onNavigate={onClose} /></> : <>
+      <p className="feature-eyebrow">Find your next great film</p><h2 id={titleId}>{embedded ? 'Find my movie' : 'What are you in the mood for?'}</h2>
       <p className="feature-muted">Search real film records, or explore a different way into cinema.</p>
       <div className="search-tabs" role="tablist" aria-label="Search by" onKeyDown={event => {
         const current = tabs.findIndex(item => item.id === tab)
@@ -133,9 +138,9 @@ export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: Sea
         if (event.key === 'ArrowLeft') index = (current - 1 + tabs.length) % tabs.length
         if (event.key === 'Home') index = 0
         if (event.key === 'End') index = tabs.length - 1
-        if (index !== undefined) { event.preventDefault(); changeTab(tabs[index].id); document.getElementById(`tab-${tabs[index].id}`)?.focus() }
-      }}>{tabs.map(item => <button key={item.id} type="button" role="tab" id={`tab-${item.id}`} aria-controls={`panel-${item.id}`} aria-selected={tab === item.id} tabIndex={tab === item.id ? 0 : -1} onClick={() => changeTab(item.id)}>{item.label}</button>)}</div>
-      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="search-tab-panel">
+        if (index !== undefined) { event.preventDefault(); changeTab(tabs[index].id); document.getElementById(`${tabPrefix}-${tabs[index].id}`)?.focus() }
+      }}>{tabs.map(item => <button key={item.id} type="button" role="tab" id={`${tabPrefix}-${item.id}`} aria-controls={`${panelPrefix}-${item.id}`} aria-selected={tab === item.id} tabIndex={tab === item.id ? 0 : -1} onClick={() => changeTab(item.id)}>{item.label}</button>)}</div>
+      <div role="tabpanel" id={`${panelPrefix}-${tab}`} aria-labelledby={`${tabPrefix}-${tab}`} className="search-tab-panel">
         <form onSubmit={event => { event.preventDefault(); submit() }}>
           {tab === 'title' && <TitleAutocomplete label="Movie title" value={title} onChange={value => { setTitle(value); invalidate() }} onSelect={movie => { setTitle(movie.title); cancelSearch(); setOutcomes(previous => ({ ...previous, title: { request: movie.title, results: [{ movie, reason: `Title match · ${movie.releaseYear ?? 'Year not recorded'}` }] } })); focusResults() }} />}
           {tab === 'mood' && <>
@@ -155,9 +160,10 @@ export function SearchDialog({ initial, onClose, returnFocusTo }: { initial: Sea
           <div className="search-submit-row"><button type="submit" className="feature-button primary" disabled={searching || (tab === 'title' && title.trim().length < 2)}><Search size={16} /> {searching ? 'Searching…' : 'Find films'}</button>{tab === 'similar' && <span className="field-help">Choose what you want in common.</span>}</div>
         </form>
         {searching && <p role="status" className="field-help">Finding films…</p>}
-        {outcome && <>{tab === 'description' && descriptionFilters && <div className="interpreted-filters"><p className="field-help">Matched keywords: {descriptionFilters.genreIds.map(id => genreOptions.find(genre => genre.id === id)?.name).concat(descriptionFilters.languages.map(languageName), descriptionFilters.runtime ? [`Under ${descriptionFilters.runtime} min`] : [], descriptionFilters.excludedGenreIds.map(id => `No ${genreOptions.find(genre => genre.id === id)?.name}`)).join(' · ') || 'None'}. Keyword matching only; other story details are not interpreted.</p></div>}<SearchResults request={outcome.request} results={outcome.results} chips={chips} error={outcome.error} onRetry={() => { if (outcome.results.length && outcome.nextPage) moreResults(); else submit() }} hasMore={Boolean(outcome.nextPage)} loading={searching} onMore={moreResults} onSelect={movie => { previewTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setPreview(movie) }} /></>}
+        {outcome && <>{tab === 'description' && descriptionFilters && <div className="interpreted-filters"><p className="field-help">Matched keywords: {descriptionFilters.genreIds.map(id => genreOptions.find(genre => genre.id === id)?.name).concat(descriptionFilters.languages.map(languageName), descriptionFilters.runtime ? [`Under ${descriptionFilters.runtime} min`] : [], descriptionFilters.excludedGenreIds.map(id => `No ${genreOptions.find(genre => genre.id === id)?.name}`)).join(' · ') || 'None'}. Keyword matching only; other story details are not interpreted.</p></div>}<SearchResults headingId={resultsId} request={outcome.request} results={outcome.results} chips={chips} error={outcome.error} onRetry={() => { if (outcome.results.length && outcome.nextPage) moreResults(); else submit() }} hasMore={Boolean(outcome.nextPage)} loading={searching} onMore={moreResults} onSelect={movie => { previewTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setPreview(movie) }} /></>}
 
       </div>
     </>}
-  </Dialog>
+  </>
+  return embedded ? <section id="find-my-movie" className="mobile-home-section embedded-search page-container" aria-labelledby={titleId}>{content}</section> : <Dialog titleId={titleId} className="search-dialog" onClose={onClose} returnFocusTo={returnFocusTo}>{content}</Dialog>
 }

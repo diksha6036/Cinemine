@@ -3,13 +3,19 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { imageUrl, normalizeFilm, publicationEvents, releaseCalendar, homeFilms, discoverFilms, similarFilms } from '../server/provider.mjs'
+import { imageUrl, normalizeFilm, publicationEvents, releaseCalendar, homeFilms, discoverFilms, similarFilms, watchProviders, watchRegions } from '../server/provider.mjs'
 import { readDiscoveryOptions } from '../server/discovery.mjs'
 import { readServerConfig } from '../server/env.mjs'
 import { handleApi, validDate } from '../server/api.mjs'
 
 const record = { id: 27205, title: 'Inception', release_date: '2010-07-16', poster_path: '/poster.jpg', backdrop_path: '/backdrop.jpg', original_language: 'en', overview: 'A spoiler-free synopsis.', runtime: 148, genres: [{ id: 878, name: 'Science Fiction' }], credits: { crew: [{ id: 525, name: 'Christopher Nolan', job: 'Director' }], cast: [{ id: 6193, name: 'Leonardo DiCaprio' }] }, videos: { results: [{ site: 'YouTube', type: 'Trailer', official: true, key: 'abcdefghijk' }] }, vote_count: 100, vote_average: 8.3 }
 const config = { images: { secure_base_url: 'https://image.tmdb.org/t/p/' } }
+const regionsFixture = { results: [{ iso_3166_1: 'IN', english_name: 'India' }, { iso_3166_1: 'US', english_name: 'United States' }, { iso_3166_1: 'GB', english_name: 'United Kingdom' }, { iso_3166_1: 'CA', english_name: 'Canada' }, { iso_3166_1: 'AU', english_name: 'Australia' }, { iso_3166_1: 'FR', english_name: 'France' }, { iso_3166_1: 'JP', english_name: 'Japan' }] }
+const watchFixture = { results: {
+  IN: { link: 'https://www.themoviedb.org/movie/27205/watch?locale=IN', flatrate: [{ provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.jpg' }, { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.jpg' }, { provider_name: 'Unknown provider' }], free: [{ provider_id: 9, provider_name: 'Free service' }], ads: [{ provider_id: 10, provider_name: 'Ad-supported service' }], rent: [{ provider_id: 2, provider_name: 'Apple TV', logo_path: 'https://untrusted.example/logo.jpg' }], buy: [{ provider_id: 2, provider_name: 'Apple TV' }] },
+  US: { link: 'https://www.themoviedb.org/movie/27205/watch?locale=US', flatrate: [{ provider_id: 337, provider_name: 'Disney Plus' }] },
+  FR: { flatrate: [{ provider_id: 381, provider_name: 'Canal+' }] },
+} }
 const envNames = ['TMDB_READ_ACCESS_TOKEN', 'TMDB_ACCESS_TOKEN', 'TMDB_API_KEY']
 function isolatedEnv(callback, contents = '') {
   const cwd = process.cwd(), saved = Object.fromEntries(envNames.map(name => [name, process.env[name]]))
@@ -110,6 +116,124 @@ test('rejects impossible dates instead of normalizing them', () => {
   assert.equal(validDate('2026-11-16T00:00:00Z'), false)
 })
 
+test('watch options keep country and payment categories separate and use existing authenticated caching', async () => {
+  await isolatedEnv(async () => {
+    const originalFetch = globalThis.fetch
+    process.env.TMDB_READ_ACCESS_TOKEN = 'unit-watch-providers'
+    let requests = 0
+    globalThis.fetch = async (input, options) => {
+      const url = new URL(input)
+      requests++
+      assert.equal(url.href, 'https://api.themoviedb.org/3/movie/27205/watch/providers')
+      assert.equal(options.headers.Authorization, 'Bearer unit-watch-providers')
+      return Response.json(watchFixture)
+    }
+    try {
+      const india = await watchProviders('27205')
+      assert.equal(india.countryCode, 'IN')
+      assert.deepEqual(india.groups.map(group => group.label), ['Subscription', 'Free', 'Free with ads', 'Rent', 'Buy'])
+      assert.deepEqual(india.groups[0].providers, [{ id: 8, name: 'Netflix', logoUrl: 'https://image.tmdb.org/t/p/w92/netflix.jpg' }])
+      assert.equal(india.groups[3].providers[0].logoUrl, '')
+      assert.equal(india.groups[4].providers[0].name, 'Apple TV')
+      assert.equal(india.watchUrl, watchFixture.results.IN.link)
+      assert.equal(india.source, 'JustWatch')
+      const us = await watchProviders('27205', 'US')
+      assert.equal(us.groups[0].providers[0].name, 'Disney Plus')
+      assert.equal(us.watchUrl, watchFixture.results.US.link)
+      const missing = await watchProviders('27205', 'GB')
+      assert.deepEqual(missing.groups, [])
+      assert.equal(missing.watchUrl, '')
+      assert.equal(requests, 1)
+      assert.equal(JSON.stringify(india).includes(process.env.TMDB_READ_ACCESS_TOKEN), false)
+    } finally { globalThis.fetch = originalFetch }
+  })
+})
+
+test('watch options reject untrusted source links and report upstream errors separately from missing listings', async () => {
+  await isolatedEnv(async () => {
+    const originalFetch = globalThis.fetch
+    process.env.TMDB_READ_ACCESS_TOKEN = 'unit-watch-errors'
+    globalThis.fetch = async input => {
+      if (new URL(input).pathname.includes('/27205/')) return Response.json({ results: { IN: { ...watchFixture.results.IN, link: 'https://untrusted.example/watch' } } })
+      return new Response('', { status: 401 })
+    }
+    try {
+      assert.equal((await watchProviders('27205')).watchUrl, '')
+      let status, body
+      await handleApi({ url: '/api/movies/watch-providers?id=680', method: 'GET', socket: { remoteAddress: 'test-watch-failure' } }, { writeHead(code) { status = code }, end(value) { body = JSON.parse(value) } })
+      assert.equal(status, 502)
+      assert.match(body.error, /credential/)
+      assert.equal(body.groups, undefined)
+      assert.equal(JSON.stringify(body).includes(process.env.TMDB_READ_ACCESS_TOKEN), false)
+    } finally { globalThis.fetch = originalFetch }
+  })
+})
+
+test('watch-provider API validates film IDs and country-code format before fetching', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () => { assert.fail('Invalid inputs must not reach TMDB') }
+  try {
+    for (const query of ['', 'id=0', 'id=-1', 'id=abc', 'id=27205/credits', 'id=99999999999', 'id=27205&country=USA', 'id=27205&country=in', 'id=27205&country=']) {
+      let status
+      await handleApi({ url: `/api/movies/watch-providers?${query}`, method: 'GET', socket: { remoteAddress: 'test-watch-validation' } }, { writeHead(code) { status = code }, end() {} })
+      assert.equal(status, 400, query)
+    }
+  } finally { globalThis.fetch = originalFetch }
+})
+
+test('streaming countries are source-backed, sorted, deduplicated, cached, and available beyond the original five', async () => {
+  await isolatedEnv(async () => {
+    const originalFetch = globalThis.fetch
+    process.env.TMDB_READ_ACCESS_TOKEN = 'unit-watch-regions'
+    const calls = []
+    globalThis.fetch = async (input, options) => {
+      const url = new URL(input)
+      calls.push(url.pathname)
+      assert.equal(options.headers.Authorization, 'Bearer unit-watch-regions')
+      if (url.pathname.endsWith('/watch/providers/regions')) {
+        assert.equal(url.searchParams.get('language'), 'en-US')
+        return Response.json({ results: [...regionsFixture.results, regionsFixture.results[0], null, { iso_3166_1: 'bad', english_name: 'Invalid' }, { iso_3166_1: 'ZZ', english_name: '' }] })
+      }
+      assert.equal(url.pathname, '/3/movie/27205/watch/providers')
+      return Response.json(watchFixture)
+    }
+    const request = async path => {
+      let status, body
+      await handleApi({ url: path, method: 'GET', socket: { remoteAddress: 'test-watch-regions' } }, { writeHead(code) { status = code }, end(value) { body = JSON.parse(value) } })
+      return { status, body }
+    }
+    try {
+      const regions = await request('/api/watch-regions')
+      assert.equal(regions.status, 200)
+      assert.equal(regions.body.countries.length, 7)
+      assert.deepEqual(regions.body.countries.map(country => country.name), ['Australia', 'Canada', 'France', 'India', 'Japan', 'United Kingdom', 'United States'])
+      assert.deepEqual(await watchRegions(), regions.body.countries)
+      const france = await request('/api/movies/watch-providers?id=27205&country=FR')
+      assert.equal(france.status, 200)
+      assert.equal(france.body.countryCode, 'FR')
+      assert.equal(france.body.groups[0].providers[0].name, 'Canal+')
+      const japan = await request('/api/movies/watch-providers?id=27205&country=JP')
+      assert.equal(japan.status, 200)
+      assert.deepEqual(japan.body.groups, [])
+      const unsupported = await request('/api/movies/watch-providers?id=27205&country=XX')
+      assert.equal(unsupported.status, 400)
+      assert.equal(unsupported.body.groups, undefined)
+      assert.equal(calls.filter(path => path.endsWith('/regions')).length, 1)
+      assert.equal(calls.filter(path => path.endsWith('/watch/providers')).length, 1)
+    } finally { globalThis.fetch = originalFetch }
+  })
+})
+
+test('an empty country response is a retryable source error instead of a fabricated country list', async () => {
+  await isolatedEnv(async () => {
+    const originalFetch = globalThis.fetch
+    process.env.TMDB_READ_ACCESS_TOKEN = 'unit-empty-regions'
+    globalThis.fetch = async () => Response.json({ results: [] })
+    try { await assert.rejects(watchRegions, /Could not load countries/) }
+    finally { globalThis.fetch = originalFetch }
+  })
+})
+
 test('Vercel functions serve public API URLs using environment-only credentials', async () => {
   await isolatedEnv(async () => {
     const originalFetch = globalThis.fetch
@@ -118,6 +242,8 @@ test('Vercel functions serve public API URLs using environment-only credentials'
     globalThis.fetch = async (input, options) => {
       const url = new URL(input)
       assert.equal(options.headers.Authorization, `Bearer ${token}`)
+      if (url.pathname.endsWith('/watch/providers/regions')) return Response.json(regionsFixture)
+      if (url.pathname.endsWith('/watch/providers')) return Response.json(watchFixture)
       if (url.pathname.endsWith('/configuration')) return Response.json(config)
       if (url.pathname.endsWith('/search/movie')) assert.equal(url.searchParams.get('query'), 'Inception')
       if (url.pathname.endsWith('/discover/movie')) {
@@ -130,11 +256,13 @@ test('Vercel functions serve public API URLs using environment-only credentials'
     }
     const routes = [
       ['../api/health.js', '/api/health', body => assert.equal(body.configured, true)],
+      ['../api/watch-regions.js', '/api/watch-regions', body => assert.ok(body.countries.some(country => country.code === 'JP'))],
       ['../api/movies/featured.js', '/api/movies/featured', body => assert.equal(body.movies[0].id, '27205')],
       ['../api/movies/search.js', '/api/movies/search?q=Inception', body => assert.equal(body.movies[0].title, 'Inception')],
       ['../api/movies/discover.js', '/api/movies/discover?genres=878', body => assert.equal(body.movies[0].id, '27205')],
       ['../api/movies/recommendations.js', '/api/movies/recommendations?id=27205&aspects=genres', body => assert.equal(body.results[0].movie.id, '680')],
       ['../api/movies/[id].js', '/api/movies/27205', body => assert.equal(body.movie.runtimeMinutes, 148)],
+      ['../api/movies/watch-providers.js', '/api/movies/watch-providers?id=27205&country=US', body => { assert.equal(body.countryCode, 'US'); assert.equal(body.groups[0].providers[0].name, 'Disney Plus') }],
       ['../api/releases.js', '/api/releases?from=2026-11-01&to=2026-11-30&country=IN&genre=878&type=Theatrical', body => { assert.equal(body.events.length, 1); assert.equal(body.events[0].countryCode, 'IN') }],
     ]
     try {
@@ -164,6 +292,8 @@ test('Netlify web handler preserves API paths, queries, statuses, and private en
     globalThis.fetch = async (input, options) => {
       const url = new URL(input)
       assert.equal(options.headers.Authorization, `Bearer ${token}`)
+      if (url.pathname.endsWith('/watch/providers/regions')) return Response.json(regionsFixture)
+      if (url.pathname.endsWith('/watch/providers')) return Response.json(watchFixture)
       if (url.pathname.endsWith('/configuration')) return Response.json(config)
       if (url.pathname.endsWith('/search/movie')) {
         assert.equal(url.searchParams.get('query'), 'Inception & dreams')
@@ -183,6 +313,13 @@ test('Netlify web handler preserves API paths, queries, statuses, and private en
       const detail = await request('/api/movies/27205')
       assert.equal(detail.status, 200)
       assert.equal((await detail.json()).movie.runtimeMinutes, 148)
+      const availability = await request('/api/movies/watch-providers?id=27205')
+      assert.equal(availability.status, 200)
+      assert.equal((await availability.json()).groups[0].providers[0].name, 'Netflix')
+      assert.ok((await (await request('/api/watch-regions')).json()).countries.some(country => country.code === 'FR'))
+      const france = await request('/api/movies/watch-providers?id=27205&country=FR')
+      assert.equal(france.status, 200)
+      assert.equal((await france.json()).groups[0].providers[0].name, 'Canal+')
       assert.equal((await request('/api/movies/search?q=x')).status, 400)
       assert.equal((await request('/api/movies/search?q=Inception', 'POST')).status, 405)
       assert.equal((await request('/api/unknown')).status, 404)

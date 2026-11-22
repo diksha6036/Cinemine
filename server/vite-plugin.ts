@@ -2,6 +2,7 @@ import type { Plugin } from 'vite'
 import { readFile } from 'node:fs/promises'
 import { handleApi } from './api.mjs'
 import { handlePage } from './html.mjs'
+import { isCrawlerPath } from './sitemaps.mjs'
 
 export function movieApiPlugin(): Plugin {
   return {
@@ -11,7 +12,7 @@ export function movieApiPlugin(): Plugin {
       return () => server.middlewares.use(async (request, response, next) => {
         request.url = request.originalUrl ?? request.url
         const path = new URL(request.url ?? '/', 'http://localhost').pathname
-        if (path.startsWith('/@') || path.startsWith('/src/') || path.startsWith('/node_modules/') || path.startsWith('/images/') || path.startsWith('/assets/') || (/\.[a-z0-9]+$/i.test(path) && !['/robots.txt', '/sitemap.xml', '/index.html'].includes(path))) { next(); return }
+        if (path.startsWith('/@') || path.startsWith('/src/') || path.startsWith('/node_modules/') || path.startsWith('/images/') || path.startsWith('/assets/') || (/\.[a-z0-9]+$/i.test(path) && !isCrawlerPath(path) && path !== '/index.html')) { next(); return }
         const template = await server.transformIndexHtml(request.url ?? '/', await readFile('index.html', 'utf8'))
         await handlePage(request, response, { template, render: async page => { const module = await server.ssrLoadModule('/src/entry-server.tsx'); return module.render(page) } })
       })

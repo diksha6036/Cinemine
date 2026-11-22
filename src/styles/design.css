@@ -79,7 +79,7 @@
 .movie-facts strong { display: block; color: #e2d2bb; font-size: 13px; font-weight: 400; margin-top: 5px; }
 .detail-find { font-size: 12px; margin-top: 14px; }
 .source-footnote { font-size: 10px; color: #a29582; line-height: 1.7; margin-top: 22px; }
-@media (min-width: 1001px) {
+@media (min-width: 1201px) {
   .main-nav { position: static; display: flex; flex-direction: row; align-items: center; gap: clamp(18px, 2.4vw, 36px); padding: 0; border: none; box-shadow: none; background: none; }
   .main-nav > a, .main-nav > button { padding: 12px 0; }
   .menu-toggle { display: none; }
@@ -93,7 +93,7 @@
   .cinepick-copy h2 { font-size: 43px; }
   .cinepick-story > p:last-child { font-size: 13px; }
 }
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
   .menu-toggle { display: inline-flex; order: 3; }
   .navbar-search { margin-left: auto; margin-right: 0; order: 2; }
   .main-nav { position: absolute; top: 72px; left: var(--page-gutter); right: var(--page-gutter); display: none; flex-direction: column; align-items: stretch; gap: 3px; padding: 15px; margin: 0; border: 1px solid #c9b18f59; border-radius: 12px; background: #121718fa; box-shadow: 0 20px 40px #0008; }
