@@ -17,6 +17,11 @@
 .embedded-search .autocomplete-options { z-index: 4; }
 .embedded-search .autocomplete-options li { min-height: 60px; font-size: .875rem; }
 .embedded-search .autocomplete-options small { font-size: .8125rem; }
+.person-autocomplete .person-portrait { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 52px; overflow: hidden; border-radius: 6px; color: var(--color-muted); background: #101719; }
+.person-portrait img { width: 100%; height: 100%; object-fit: cover; }
+.person-autocomplete .autocomplete-options small { font-size: .8125rem; line-height: 1.5; }
+.person-autocomplete .person-load-more { width: 100%; margin-top: 8px; min-height: 44px; font-size: .875rem; }
+.person-autocomplete .person-load-more[aria-disabled='true'] { opacity: .6; cursor: progress; }
 .embedded-search .search-submit-row { margin-bottom: 18px; }
 .embedded-search .feature-button { font-size: .875rem; }
 @media (max-width: 760px) {

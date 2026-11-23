@@ -1,4 +1,4 @@
-import { GENRES, getFilms, getSeries, discoverFilms, tmdb } from './provider.mjs'
+import { GENRES, getFilms, getSeries, discoverFilms, imageUrl, tmdb } from './provider.mjs'
 import { matchesFilters, matchesSimilarity, readDiscoveryOptions, uniqueMovies } from './discovery.mjs'
 import { mediaKey } from '../shared/media.mjs'
 
@@ -41,6 +41,78 @@ export async function searchTitles(query, { mediaType = 'all', page = 1, limit =
   const records = (data.results ?? []).filter(record => !record.adult && (mediaType !== 'all' || ['movie', 'tv'].includes(record.media_type)))
   const references = uniqueMovies(records.map(record => ({ id: String(record.id), mediaType: mediaType === 'all' ? record.media_type : mediaType }))).slice(0, limit)
   return { titles: await getTitles(references), nextPage: page < Math.min(Number(data.total_pages) || 1, 500) ? page + 1 : null }
+}
+
+const personNameKey = name => String(name ?? '').normalize('NFKD').toLocaleLowerCase('en').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '')
+function nameDistance(left, right) {
+  const a = Array.from(left), b = Array.from(right)
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index)
+  for (let row = 1; row <= a.length; row++) {
+    const current = [row]
+    for (let column = 1; column <= b.length; column++) current[column] = Math.min(current[column - 1] + 1, previous[column] + 1, previous[column - 1] + (a[row - 1] === b[column - 1] ? 0 : 1))
+    previous = current
+  }
+  return previous[b.length]
+}
+async function actingPeople(records) {
+  const candidates = [...new Map(records.filter(person => !person.adult && person.name?.trim() && /^[1-9]\d{0,9}$/.test(String(person.id))).map(person => [String(person.id), person])).values()]
+  const matches = []
+  for (let index = 0; index < candidates.length; index += 4) {
+    const batch = await Promise.all(candidates.slice(index, index + 4).map(async person => {
+      if (person.known_for_department === 'Acting') return person
+      // A primary department is not a complete career history. Verify acting
+      // credits for multi-career people and those with missing department data.
+      let credits
+      try { credits = await tmdb(`/person/${person.id}/combined_credits`, { language: 'en-US' }) }
+      catch (error) { if (error.status === 404) return null; throw error }
+      const roles = (credits.cast ?? []).filter(record => !record.adult && /^[1-9]\d*$/.test(String(record.id)) && ['movie', 'tv'].includes(record.media_type) && isActingCredit(record))
+      return roles.length ? { ...person, known_for: roles.sort((left, right) => (Number(right.popularity) || 0) - (Number(left.popularity) || 0)).slice(0, 3) } : null
+    }))
+    matches.push(...batch.filter(Boolean))
+  }
+  return matches
+}
+export async function searchPeople(query, { page = 1 } = {}) {
+  const loadPage = (term, number) => tmdb('/search/person', { query: term, language: 'en-US', include_adult: 'false', page: String(number) })
+  const data = await loadPage(query, page)
+  let matches = await actingPeople(data.results ?? [])
+  const totalPages = Math.min(Number(data.total_pages) || 1, 500)
+  let nextPage = page < totalPages ? page + 1 : null
+  // When the full name has a typo, search its first and last parts, then keep
+  // only close full-name matches so a common surname cannot match everyone.
+  const words = query.trim().split(/\s+/u)
+  if (!matches.length && totalPages === 1 && words.length > 1) {
+    const parts = [...new Set([words[0], words.at(-1)])].filter(word => word.length >= 2)
+    const pages = await Promise.all(parts.map(term => loadPage(term, 1)))
+    const candidates = await actingPeople(pages.flatMap(result => result.results ?? []))
+    const key = personNameKey(query)
+    matches = candidates.map(person => ({ person, distance: nameDistance(key, personNameKey(person.name)) }))
+      .filter(({ person, distance }) => distance <= Math.max(1, Math.floor(Math.max(Array.from(key).length, Array.from(personNameKey(person.name)).length) * .25)))
+      .sort((left, right) => left.distance - right.distance || (Number(right.person.popularity) || 0) - (Number(left.person.popularity) || 0)).map(match => match.person)
+    nextPage = page * 20 < matches.length ? page + 1 : null
+    matches = matches.slice((page - 1) * 20, page * 20)
+  }
+  return { people: matches.map(person => ({
+    id: String(person.id), name: person.name, profileUrl: imageUrl(person.profile_path, 'w185'),
+    knownFor: (person.known_for ?? []).filter(title => !title.adult && ['movie', 'tv'].includes(title.media_type)).slice(0, 3).map(title => title.title || title.name).filter(Boolean),
+  })), nextPage }
+}
+
+function isActingCredit(record) {
+  if (record.media_type === 'tv' && (record.genre_ids ?? []).some(genre => [99, 10763, 10764, 10767].includes(genre))) return false
+  const role = String(record.character ?? '').trim()
+  return !/^(?:self|himself|herself|themselves|host|presenter|interviewee)\b/i.test(role) && !/\barchiv(?:e|al)\s+(?:footage|material)\b|\(archive\)/i.test(role)
+}
+export async function castTitles(id, { mediaType = 'movie', page = 1 } = {}) {
+  const data = await tmdb(`/person/${id}/combined_credits`, { language: 'en-US' })
+  const credits = uniqueMovies((data.cast ?? []).filter(record => !record.adult && ['movie', 'tv'].includes(record.media_type) && (mediaType === 'all' || record.media_type === mediaType) && isActingCredit(record))
+    .sort((left, right) => (Number(right.popularity) || 0) - (Number(left.popularity) || 0))
+    .map(record => ({ id: String(record.id), mediaType: record.media_type, character: record.character || '' })).filter(record => /^[1-9]\d*$/.test(record.id)))
+  const start = (page - 1) * 20
+  const selected = credits.slice(start, start + 20), rolesByTitle = new Map(selected.map(record => [mediaKey(record), record.character]))
+  const titles = await getTitles(selected)
+  const roles = Object.fromEntries(titles.flatMap(title => rolesByTitle.get(mediaKey(title)) ? [[mediaKey(title), rolesByTitle.get(mediaKey(title))]] : []))
+  return { titles, roles, nextPage: start + 20 < credits.length && page < 500 ? page + 1 : null }
 }
 
 async function collectTitles(loadPage, type, options, matches) {

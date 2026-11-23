@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { getFilms, getSeries, normalizeSeries, watchProviders } from '../server/provider.mjs'
-import { discoverTitles, homeCatalogue, readTitleOptions, searchTitles, similarTitles } from '../server/titles.mjs'
+import { castTitles, discoverTitles, homeCatalogue, readTitleOptions, searchTitles, similarTitles } from '../server/titles.mjs'
 import { handleApi } from '../server/api.mjs'
 import { matchesSimilarity } from '../server/discovery.mjs'
 import { mediaKey, titlePath } from '../shared/media.mjs'
@@ -91,6 +91,183 @@ test('movie and series search filters use their own source endpoints', async () 
     assert.ok(calls.some(url => url.pathname === '/3/search/movie'))
     assert.ok(calls.some(url => url.pathname === '/3/search/tv'))
   }, url => /\/search\/(movie|tv)$/.test(url.pathname) ? Response.json({ results: [{ id: 7 }], total_pages: 1 }) : undefined)
+})
+
+test('actor suggestions preserve Unicode queries and distinguish people with known titles without exposing credentials', async () => {
+  await isolated(async ({ calls, token }) => {
+    const result = await request('/api/titles/people?q=%20आलिया%20%20')
+    assert.equal(result.status, 200)
+    assert.deepEqual(result.body.people, [{ id: '100', name: 'आलिया भट्ट', profileUrl: 'https://image.tmdb.org/t/p/w185/actor.jpg', knownFor: ['A movie', 'A series'] }, { id: '101', name: 'Another actor', profileUrl: '', knownFor: [] }])
+    const search = calls.find(url => url.pathname.endsWith('/search/person'))
+    assert.equal(search.searchParams.get('query'), 'आलिया')
+    assert.equal(search.searchParams.get('include_adult'), 'false')
+    assert.equal(JSON.stringify(result.body).includes(token), false)
+    assert.equal(calls.some(url => /\/(movie|tv)\/\d+$/.test(url.pathname)), false, 'suggestions do not hydrate every known title')
+  }, url => url.pathname.endsWith('/search/person') ? Response.json({ results: [
+    { id: 100, name: 'आलिया भट्ट', known_for_department: 'Acting', profile_path: '/actor.jpg', known_for: [{ title: 'A movie', media_type: 'movie' }, { name: 'A series', media_type: 'tv' }, { title: 'Excluded', media_type: 'movie', adult: true }] },
+    { id: 101, name: 'Another actor', known_for_department: 'Acting', profile_path: 'https://invalid.example/photo.jpg' },
+    { id: 102, name: 'Crew member', known_for_department: 'Directing' },
+    { id: 103, name: 'Excluded', known_for_department: 'Acting', adult: true },
+    { id: '../invalid', name: 'Invalid', known_for_department: 'Acting' },
+  ] }) : url.pathname.endsWith('/person/102/combined_credits') ? Response.json({ cast: [], crew: [{ id: 7, media_type: 'movie' }] }) : undefined)
+})
+
+test('actor suggestions expose every source page and include credited actors with another or missing primary department', async () => {
+  await isolated(async ({ calls }) => {
+    const first = await request('/api/titles/people?q=Actor')
+    assert.equal(first.status, 200)
+    assert.equal(first.body.people.length, 20, 'the first page is no longer truncated to ten suggestions')
+    assert.equal(first.body.nextPage, 2)
+    const second = await request('/api/titles/people?q=Actor&page=2')
+    assert.equal(second.status, 200)
+    assert.equal(second.body.nextPage, null)
+    assert.deepEqual(second.body.people.map(person => person.id), ['119', '120', '121', '123'])
+    assert.deepEqual(second.body.people.find(person => person.id === '120').knownFor, ['A movie'])
+    assert.equal(second.body.people.find(person => person.id === '123').profileUrl, '')
+    assert.ok(calls.some(url => url.pathname.endsWith('/search/person') && url.searchParams.get('page') === '2'))
+    assert.ok(!calls.some(url => url.pathname.endsWith('/person/125/combined_credits')), 'excluded adult people are not looked up')
+  }, url => {
+    if (url.pathname.endsWith('/search/person')) return Response.json({ total_pages: 2, results: url.searchParams.get('page') === '1' ? Array.from({ length: 20 }, (_, index) => ({ id: 100 + index, name: `Actor ${index}`, known_for_department: 'Acting' })) : [
+      { id: 119, name: 'Actor 19', known_for_department: 'Acting' },
+      { id: 120, name: 'Actor and director', known_for_department: 'Directing' },
+      { id: 121, name: 'Actor with incomplete metadata' },
+      { id: 122, name: 'Crew only', known_for_department: 'Writing' },
+      { id: 123, name: 'Actor without a photo', known_for_department: 'Acting' },
+      { id: 124, name: 'Interview guest', known_for_department: 'Production' },
+      { id: 125, name: 'Excluded', adult: true },
+      { id: 126, name: 'Deleted source person' },
+    ] })
+    if (url.pathname.endsWith('/person/120/combined_credits')) return Response.json({ cast: [{ id: 7, media_type: 'movie', title: 'A movie', character: 'A role' }] })
+    if (url.pathname.endsWith('/person/121/combined_credits')) return Response.json({ cast: [{ id: 7, media_type: 'tv', name: 'A series', character: 'A voice (voice)' }] })
+    if (url.pathname.endsWith('/person/122/combined_credits')) return Response.json({ cast: [], crew: [{ id: 7, media_type: 'movie' }] })
+    if (url.pathname.endsWith('/person/124/combined_credits')) return Response.json({ cast: [{ id: 7, media_type: 'tv', character: 'Self' }] })
+    if (url.pathname.endsWith('/person/126/combined_credits')) return new Response('', { status: 404 })
+  })
+})
+
+test('a people page without actors preserves the next page instead of replacing the query with typo guesses', async () => {
+  await isolated(async ({ calls }) => {
+    const first = await request('/api/titles/people?q=Regional%20performer')
+    assert.equal(first.status, 200)
+    assert.deepEqual(first.body.people, [])
+    assert.equal(first.body.nextPage, 2)
+    const second = await request('/api/titles/people?q=Regional%20performer&page=2')
+    assert.equal(second.body.people[0].name, 'Regional performer')
+    assert.equal(second.body.nextPage, null)
+    assert.ok(calls.filter(url => url.pathname.endsWith('/search/person')).every(url => url.searchParams.get('query') === 'Regional performer'))
+  }, url => url.pathname.endsWith('/search/person') ? Response.json({ total_pages: 2, results: url.searchParams.get('page') === '1' ? [{ id: 100, name: 'Crew', known_for_department: 'Directing' }] : [{ id: 101, name: 'Regional performer', known_for_department: 'Acting' }] }) : url.pathname.endsWith('/person/100/combined_credits') ? Response.json({ cast: [] }) : undefined)
+})
+
+test('a failure verifying missing department data stays retryable rather than hiding an actor', async () => {
+  await isolated(async () => {
+    const result = await request('/api/titles/people?q=New%20performer')
+    assert.equal(result.status, 502)
+    assert.ok(result.body.error)
+  }, url => url.pathname.endsWith('/search/person') ? Response.json({ results: [{ id: 100, name: 'New performer' }] }) : url.pathname.endsWith('/person/100/combined_credits') ? new Response('', { status: 503 }) : undefined)
+})
+
+test('acting credits paginate and filter by type without conflating IDs, including crew work, or returning adult titles', async () => {
+  await isolated(async () => {
+    const first = await request('/api/titles/cast?id=100&mediaType=all')
+    assert.equal(first.status, 200)
+    assert.equal(first.body.titles.length, 20)
+    assert.deepEqual(first.body.titles.slice(0, 2).map(mediaKey), ['movie:7', 'tv:7'])
+    assert.equal(first.body.nextPage, 2)
+    const second = await castTitles('100', { mediaType: 'all', page: 2 })
+    assert.equal(second.nextPage, null)
+    assert.equal(second.titles.length, 3, 'hydrated adult title is excluded too')
+    const all = [...first.body.titles, ...second.titles].map(mediaKey)
+    assert.equal(new Set(all).size, 23)
+    assert.ok(!all.some(key => ['movie:8', 'movie:9', 'movie:40'].includes(key)))
+    const movies = await request('/api/titles/cast?id=100&mediaType=movie')
+    assert.ok(movies.body.titles.every(title => title.mediaType === 'movie'))
+    const series = await request('/api/titles/cast?id=100&mediaType=tv')
+    assert.deepEqual(series.body.titles.map(mediaKey), ['tv:7'])
+    assert.equal(series.body.nextPage, null)
+  }, url => {
+    if (url.pathname.endsWith('/person/100/combined_credits')) return Response.json({ cast: [
+      { id: 7, media_type: 'movie', popularity: 1000 }, { id: 7, media_type: 'tv', popularity: 900 },
+      { id: 7, media_type: 'movie', popularity: 800 }, { id: 8, media_type: 'movie', adult: true },
+      { id: 10, media_type: 'person' }, { id: '../invalid', media_type: 'movie' },
+      ...Array.from({ length: 22 }, (_, index) => ({ id: 20 + index, media_type: 'movie', popularity: 100 - index })),
+    ], crew: [{ id: 9, media_type: 'movie', popularity: 2000 }] })
+    if (url.pathname.endsWith('/movie/40')) return Response.json({ ...movieRecord, id: 40, adult: true })
+  })
+})
+
+test('unknown people and empty acting credits return an empty state; source failures remain errors', async () => {
+  await isolated(async () => {
+    assert.deepEqual((await request('/api/titles/people?q=Nobody')).body.people, [])
+    const empty = await request('/api/titles/cast?id=100')
+    assert.equal(empty.status, 200)
+    assert.deepEqual(empty.body.titles, [])
+    assert.equal(empty.body.nextPage, null)
+    const failed = await request('/api/titles/cast?id=101')
+    assert.equal(failed.status, 502)
+    assert.ok(failed.body.error)
+  }, url => url.pathname.endsWith('/search/person') ? Response.json({ results: [] }) : url.pathname.endsWith('/person/100/combined_credits') ? Response.json({ cast: [], crew: [{ id: 7, media_type: 'movie' }] }) : url.pathname.endsWith('/person/101/combined_credits') ? new Response('', { status: 503 }) : undefined)
+})
+
+test('actor search defaults to movies and excludes interviews, reality shows and archive appearances even in All', async () => {
+  await isolated(async () => {
+    const defaultMovies = await request('/api/titles/cast?id=100')
+    assert.equal(defaultMovies.status, 200)
+    assert.deepEqual(defaultMovies.body.titles.map(mediaKey), ['movie:7', 'movie:14'])
+    assert.deepEqual(defaultMovies.body.roles, { 'movie:7': 'A fictional role', 'movie:14': 'Hostage negotiator' })
+    const all = await request('/api/titles/cast?id=100&mediaType=all')
+    assert.deepEqual(all.body.titles.map(mediaKey), ['movie:7', 'tv:7', 'movie:14'])
+    assert.equal(all.body.roles['tv:7'], 'A series role')
+    const series = await request('/api/titles/cast?id=100&mediaType=tv')
+    assert.deepEqual(series.body.titles.map(mediaKey), ['tv:7'])
+  }, url => url.pathname.endsWith('/person/100/combined_credits') ? Response.json({ cast: [
+    { id: 8, media_type: 'tv', character: 'Self', popularity: 1000 },
+    { id: 9, media_type: 'tv', character: '', genre_ids: [10764], popularity: 900 },
+    { id: 10, media_type: 'tv', character: '', genre_ids: [10767], popularity: 800 },
+    { id: 11, media_type: 'tv', character: '', genre_ids: [99], popularity: 700 },
+    { id: 12, media_type: 'movie', character: 'An actor (archive footage)', popularity: 600 },
+    { id: 13, media_type: 'movie', character: 'Herself (Special Appearance)', popularity: 500 },
+    { id: 7, media_type: 'movie', character: 'A fictional role', popularity: 300 },
+    { id: 7, media_type: 'tv', character: 'Self', popularity: 250 },
+    { id: 7, media_type: 'tv', character: 'A series role', genre_ids: [18], popularity: 200 },
+    { id: 14, media_type: 'movie', character: 'Hostage negotiator', popularity: 100 },
+  ], crew: [{ id: 15, media_type: 'movie' }] }) : undefined)
+})
+
+test('typed actor searches tolerate misspellings and spacing without matching unrelated people', async () => {
+  await isolated(async ({ calls }) => {
+    const alia = await request('/api/titles/cast?q=Alia%20Bhaatt&mediaType=movie')
+    assert.equal(alia.status, 200)
+    assert.equal(alia.body.person.name, 'Alia Bhatt')
+    assert.deepEqual(alia.body.titles.map(mediaKey), ['movie:7'])
+    const shah = await request('/api/titles/cast?q=shahruk%20khan')
+    assert.equal(shah.status, 200)
+    assert.equal(shah.body.person.name, 'Shah Rukh Khan')
+    const unknown = await request('/api/titles/cast?q=Unknown%20Khan')
+    assert.equal(unknown.status, 200)
+    assert.equal(unknown.body.person, null)
+    assert.deepEqual(unknown.body.titles, [])
+    assert.ok(!calls.some(url => url.pathname.endsWith('/person/102/combined_credits')), 'a common surname does not select an unrelated actor')
+    const searchCalls = calls.filter(url => url.pathname.endsWith('/search/person'))
+    assert.ok(searchCalls.length <= 9, 'fallback is bounded to the full name and two name parts per query')
+  }, url => {
+    if (url.pathname.endsWith('/search/person')) {
+      const q = url.searchParams.get('query')
+      const results = q === 'Alia' ? [{ id: 100, name: 'Alia Bhatt', known_for_department: 'Acting' }] : q === 'khan' || q === 'Khan' ? [
+        { id: 102, name: 'Salman Khan', known_for_department: 'Acting', popularity: 1000 },
+        { id: 101, name: 'Shah Rukh Khan', known_for_department: 'Acting' },
+      ] : []
+      return Response.json({ results })
+    }
+    if (/\/person\/(100|101)\/combined_credits$/.test(url.pathname)) return Response.json({ cast: [{ id: 7, media_type: 'movie' }] })
+  })
+})
+
+test('people APIs reject invalid input before calling the source', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async () => assert.fail('Invalid people inputs must not contact TMDB')
+  try {
+    for (const path of ['/api/titles/people?q=x', `/api/titles/people?q=${'a'.repeat(121)}`, '/api/titles/people?q=Actor&page=0', '/api/titles/people?q=Actor&page=1.5', '/api/titles/people?q=Actor&page=501', '/api/titles/cast?q=x', `/api/titles/cast?q=${'a'.repeat(121)}`, '/api/titles/cast?id=../x', '/api/titles/cast?id=0', '/api/titles/cast?id=100&page=1.5', '/api/titles/cast?id=100&page=501', '/api/titles/cast?id=100&mediaType=person']) assert.equal((await request(path)).status, 400, path)
+  } finally { globalThis.fetch = original }
 })
 
 test('mixed discovery verifies every preference, episode runtime boundaries, and typed exclusions across pages', async () => {

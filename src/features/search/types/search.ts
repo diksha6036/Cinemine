@@ -1,6 +1,7 @@
 import type { MediaFilter, Movie } from '../../../types/movie'
 
-export type SearchTab = 'title' | 'mood' | 'description' | 'similar'
+export type SearchTab = 'title' | 'person' | 'mood' | 'description' | 'similar'
+export interface SearchPerson { id: string; name: string; profileUrl: string; knownFor: string[] }
 export interface SearchMovie extends Movie {
   creators?: string[]
   creatorIds?: string[]

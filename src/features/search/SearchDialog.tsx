@@ -4,6 +4,7 @@ import { ArrowLeft, Search } from 'lucide-react'
 import { Dialog } from '../../components/ui/Dialog'
 import { MoviePreview } from '../../components/movies/MoviePreview'
 import { TitleAutocomplete } from './components/TitleAutocomplete'
+import { PersonAutocomplete } from './components/PersonAutocomplete'
 import { api } from '../../lib/api'
 import { SearchResults } from './components/SearchResults'
 import type { PreferenceChip } from './components/SearchResults'
@@ -13,9 +14,9 @@ import { mediaKey, mediaLabel } from '../../../shared/media.mjs'
 import type { MediaFilter } from '../../types/movie'
 import { interpretDescription } from '../../lib/discovery'
 import type { DescriptionFilters } from '../../lib/discovery'
-import type { SearchMovie, SearchRequest, SearchResult, SearchTab, SimilarAspect } from './types/search'
+import type { SearchMovie, SearchPerson, SearchRequest, SearchResult, SearchTab, SimilarAspect } from './types/search'
 
-const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a title' }, { id: 'similar', label: 'Similar to…' }]
+const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'person', label: 'Actor / actress' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a title' }, { id: 'similar', label: 'Similar to…' }]
 interface Outcome { request: string; results: SearchResult[]; error?: string; nextPage?: number | null; endpoint?: string; parameters?: string }
 
 export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false }: { initial: SearchRequest; onClose: () => void; returnFocusTo: HTMLElement | null; embedded?: boolean }) {
@@ -26,17 +27,22 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
   const tabPrefix = embedded ? 'mobile-tab' : 'tab'
   const panelPrefix = embedded ? 'mobile-panel' : 'panel'
   const [searching, setSearching] = useState(false)
-  const [mediaType, setMediaType] = useState<MediaFilter>(initial.mediaType ?? 'all')
+  const [tab, setTab] = useState<SearchTab>(initial.tab ?? 'title')
+  const [titleMediaType, setTitleMediaType] = useState<MediaFilter>(initial.mediaType ?? 'all')
+  const [personMediaType, setPersonMediaType] = useState<MediaFilter>(initial.tab === 'person' ? initial.mediaType ?? 'movie' : 'movie')
+  const mediaType = tab === 'person' ? personMediaType : titleMediaType
+  const setMediaType = tab === 'person' ? setPersonMediaType : setTitleMediaType
   const genreOptions = getGenreOptions(mediaType)
   const descriptionExample = `${languageName('hi')} ${t('Comedy')} ${t('Under {count} min', { count: 120 })}`
   const [descriptionFilters, setDescriptionFilters] = useState<DescriptionFilters | null>(null)
   const searchGeneration = useRef(0)
   const searchController = useRef<AbortController | null>(null)
   useEffect(() => () => { searchGeneration.current++; searchController.current?.abort() }, [])
-  const [tab, setTab] = useState<SearchTab>(initial.tab ?? 'title')
   const activeTab = useRef(tab)
   activeTab.current = tab
   const [title, setTitle] = useState(initial.query ?? '')
+  const [personQuery, setPersonQuery] = useState(initial.tab === 'person' ? initial.query ?? '' : '')
+  const [person, setPerson] = useState<SearchPerson | null>(null)
   const [selectedMoods, setSelectedMoods] = useState<string[]>(initial.mood && moodOptions.includes(initial.mood) ? [initial.mood] : [])
   const [language, setLanguage] = useState('')
   const [runtime, setRuntime] = useState('')
@@ -71,16 +77,23 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
     const controller = new AbortController()
     searchController.current = controller
     const prior = append ? outcomes[target] : undefined
-    const base = parameters.toString()
+    let base = parameters.toString()
     if (prior) {
       parameters.set('page', String(prior.nextPage))
       parameters.set('exclude', prior.results.map(result => mediaKey(result.movie)).join(','))
     }
     setSearching(true)
     try {
-      const data = await api<{ titles?: SearchMovie[]; movies?: SearchMovie[]; results?: SearchResult[]; nextPage?: number | null }>(`${endpoint}?${parameters}`, controller.signal)
-      const incoming = data.results ?? (data.titles ?? data.movies ?? []).map(movie => ({ movie, reason: [t(mediaLabel(movie)), movie.releaseYear, movie.genres.slice(0, 2).map(value => t(value)).join(' · '), movie.runtimeMinutes ? t(movie.mediaType === 'tv' ? '{count} min/episode' : '{count} min', { count: movie.runtimeMinutes }) : ''].filter(Boolean).join(' · ') }))
+      const data = await api<{ titles?: SearchMovie[]; movies?: SearchMovie[]; results?: SearchResult[]; nextPage?: number | null; person?: SearchPerson | null; roles?: Record<string, string> }>(`${endpoint}?${parameters}`, controller.signal)
+      const incoming = data.results ?? (data.titles ?? data.movies ?? []).map(movie => ({ movie, reason: [data.roles?.[mediaKey(movie)] ? t('As {character}', { character: data.roles[mediaKey(movie)] }) : '', t(mediaLabel(movie)), movie.releaseYear, movie.genres.slice(0, 2).map(value => t(value)).join(' · '), movie.runtimeMinutes ? t(movie.mediaType === 'tv' ? '{count} min/episode' : '{count} min', { count: movie.runtimeMinutes }) : ''].filter(Boolean).join(' · ') }))
       if (generation === searchGeneration.current) {
+        if (target === 'person' && data.person) {
+          setPerson(data.person); setPersonQuery(data.person.name)
+          const resolved = new URLSearchParams(base)
+          resolved.delete('q'); resolved.set('id', data.person.id)
+          base = resolved.toString()
+          request = data.person.name
+        }
         const results = [...new Map([...(prior?.results ?? []), ...incoming].map(result => [mediaKey(result.movie), result])).values()]
         setOutcomes(previous => ({ ...previous, [target]: { request, results, nextPage: data.nextPage ?? null, endpoint, parameters: base } }))
       }
@@ -95,6 +108,10 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
   }
   function submit() {
     if (tab === 'title') { void runSearch(tab, title, '/api/titles/search', new URLSearchParams({ q: title.trim(), mediaType })); return }
+    if (tab === 'person') {
+      if (person || personQuery.trim().length >= 2) void runSearch(tab, person?.name ?? personQuery.trim(), '/api/titles/cast', new URLSearchParams({ ...(person ? { id: person.id } : { q: personQuery.trim() }), mediaType }))
+      return
+    }
     const parameters = new URLSearchParams({ mediaType })
     let request = ''
     let error = ''
@@ -143,8 +160,8 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
   const content = <>
     {preview ? <><button type="button" className="text-button preview-back" onClick={() => { setPreview(null); window.setTimeout(() => previewTrigger.current?.focus(), 0) }}><ArrowLeft size={16} />  {t("Back to results")}</button><MoviePreview movie={preview} titleId={titleId} onNavigate={onClose} /></> : <>
       <p className="feature-eyebrow">{t("Find your next great watch")}</p><Heading id={titleId}>{embedded ? t("Find movies & series") : t("What would you like to watch?")}</Heading>
-      <p className="feature-muted">{t("Search movies and web series by title, mood, description, or something you already enjoy.")}</p>
-      <MediaTypeFilter value={mediaType} onChange={value => { cancelSearch(); setMediaType(value); setOutcomes({}); setDescriptionFilters(null) }} /><div className="search-tabs" role="tablist" aria-label={t("Search by")} onKeyDown={event => {
+      <p className="feature-muted">{t("Search movies and web series by title, actor, actress, mood, or something you already enjoy.")}</p>
+      <MediaTypeFilter value={mediaType} onChange={value => { cancelSearch(); setMediaType(value); setOutcomes({}); setDescriptionFilters(null); if (tab === 'person' && person) void runSearch('person', person.name, '/api/titles/cast', new URLSearchParams({ id: person.id, mediaType: value })) }} /><div className="search-tabs" role="tablist" aria-label={t("Search by")} onKeyDown={event => {
         const current = tabs.findIndex(item => item.id === tab)
         let index: number | undefined
         if (event.key === 'ArrowRight') index = (current + 1) % tabs.length
@@ -156,6 +173,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
       <div role="tabpanel" id={`${panelPrefix}-${tab}`} aria-labelledby={`${tabPrefix}-${tab}`} className="search-tab-panel">
         <form onSubmit={event => { event.preventDefault(); submit() }}>
           {tab === 'title' && <TitleAutocomplete label="Title" mediaType={mediaType} value={title} onChange={value => { setTitle(value); invalidate() }} onSelect={movie => { setTitle(movie.title); cancelSearch(); setOutcomes(previous => ({ ...previous, title: { request: movie.title, results: [{ movie, reason: `${t('Title match')} · ${movie.releaseYear ?? t("Year not recorded")}` }] } })); focusResults() }} />}
+          {tab === 'person' && <PersonAutocomplete value={personQuery} selected={person} onChange={value => { setPersonQuery(value); setPerson(null); invalidate() }} onSelect={selected => { setPerson(selected); setPersonQuery(selected.name); void runSearch('person', selected.name, '/api/titles/cast', new URLSearchParams({ id: selected.id, mediaType })) }} />}
           {tab === 'mood' && <>
             <fieldset><legend>{t("Choose your moods")} <span className="feature-muted">{t("(matches all selected)")}</span></legend><div className="preference-chips">{moodOptions.map(mood => <button key={mood} type="button" aria-pressed={selectedMoods.includes(mood)} onClick={() => { setSelectedMoods(selectedMoods.includes(mood) ? selectedMoods.filter(item => item !== mood) : [...selectedMoods, mood]); invalidate() }}>{t(mood)}</button>)}</div></fieldset>
             <div className="search-preferences">
@@ -170,7 +188,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
             {reference && <p className="field-help">{t("Selected:")} {reference.title} ({reference.releaseYear})</p>}
             <fieldset><legend>{t("What matters to you?")} <span className="feature-muted">{t("(matches all selected)")}</span></legend><div className="preference-chips">{similarAspects.map(aspect => <button key={aspect} type="button" aria-pressed={aspects.includes(aspect)} onClick={() => { setAspects(aspects.includes(aspect) ? aspects.filter(item => item !== aspect) : [...aspects, aspect]); invalidate() }}>{t(aspect === 'director' ? 'Director / creator' : aspect)}</button>)}</div></fieldset>
           </>}
-          <div className="search-submit-row"><button type="submit" className="feature-button primary" disabled={searching || (tab === 'title' && title.trim().length < 2)}><Search size={16} /> {searching ? t("Searching…") : t("Find titles")}</button>{tab === 'similar' && <span className="field-help">{t("Choose what you want in common.")}</span>}</div>
+          <div className="search-submit-row"><button type="submit" className="feature-button primary" disabled={searching || (tab === 'title' && title.trim().length < 2) || (tab === 'person' && personQuery.trim().length < 2)}><Search size={16} /> {searching ? t("Searching…") : t("Find titles")}</button>{tab === 'similar' && <span className="field-help">{t("Choose what you want in common.")}</span>}</div>
         </form>
         {searching && <p role="status" className="field-help">{t("Finding titles…")}</p>}
         {outcome && <>{tab === 'description' && descriptionFilters && <div className="interpreted-filters"><p className="field-help">{t("Matched keywords:")} {descriptionFilters.genreIds.map(id => t(getGenreOptions('all').find(genre => genre.id === id)?.name ?? '')).concat(descriptionFilters.languages.map(languageName), descriptionFilters.runtime ? [t('Under {count} min', { count: descriptionFilters.runtime })] : [], descriptionFilters.excludedGenreIds.map(id => t('No {genre}', { genre: t(getGenreOptions('all').find(genre => genre.id === id)?.name ?? '') }))).join(' · ') || t('None')}. {mediaType === 'all' && descriptionFilters.genreIds.some(id => seriesGenreFor(id) !== id) && <>{t("Series categories:")} {[...new Set(descriptionFilters.genreIds.map(seriesGenreFor))].map(id => t(getGenreOptions('tv').find(genre => genre.id === id)?.name ?? '')).filter(Boolean).join(', ')}. </>}{t("Keyword matching only; other story details are not interpreted.")}</p></div>}<SearchResults headingId={resultsId} request={outcome.request} results={outcome.results} chips={chips} error={outcome.error} onRetry={() => { if (outcome.results.length && outcome.nextPage) moreResults(); else submit() }} hasMore={Boolean(outcome.nextPage)} loading={searching} onMore={moreResults} onSelect={movie => { previewTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setPreview(movie) }} /></>}

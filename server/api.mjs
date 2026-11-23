@@ -1,7 +1,7 @@
 import { homeFilms, discoverFilms, similarFilms, recommendationReason, getFilms, releaseCalendar, RELEASE_TYPES, GENRES, searchFilms, watchProviders, watchRegions } from './provider.mjs'
 import { isConfigured } from './env.mjs'
 import { readDiscoveryOptions } from './discovery.mjs'
-import { discoverTitles, getTitles, homeCatalogue, readMediaType, readTitleOptions, searchTitles, similarTitles, trendingTitles } from './titles.mjs'
+import { castTitles, discoverTitles, getTitles, homeCatalogue, readMediaType, readTitleOptions, searchPeople, searchTitles, similarTitles, trendingTitles } from './titles.mjs'
 import { withLanguage, currentLanguage } from './language.mjs'
 import { requestLanguage } from '../shared/languages.mjs'
 import { translate } from '../shared/translations.mjs'
@@ -46,6 +46,20 @@ async function handleLocalizedApi(request, response) {
         const mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'all')
         if (query.length < 2 || query.length > 120 || !Number.isInteger(page) || page < 1 || page > 500 || !Number.isInteger(limit) || limit < 1 || limit > 20) send(response, 400, { error: 'Enter a title between 2 and 120 characters and choose a valid results page.' })
         else send(response, 200, { ...await searchTitles(query, { mediaType, page, limit }), source: 'TMDB' })
+      } else if (action === 'people') {
+        const query = (url.searchParams.get('q') ?? '').trim(), page = Number(url.searchParams.get('page') ?? '1')
+        if (query.length < 2 || query.length > 120) send(response, 400, { error: 'Enter a name between 2 and 120 characters.' })
+        else if (!Number.isInteger(page) || page < 1 || page > 500) send(response, 400, { error: 'Choose an actor or actress and a valid results page.' })
+        else send(response, 200, { ...await searchPeople(query, { page }), source: 'TMDB' })
+      } else if (action === 'cast') {
+        const id = url.searchParams.get('id'), query = (url.searchParams.get('q') ?? '').trim(), page = Number(url.searchParams.get('page') ?? '1')
+        const mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'movie')
+        if ((id !== null ? !/^[1-9]\d{0,9}$/.test(id) : query.length < 2 || query.length > 120) || !Number.isInteger(page) || page < 1 || page > 500) send(response, 400, { error: 'Choose an actor or actress and a valid results page.' })
+        else if (id !== null) send(response, 200, { ...await castTitles(id, { mediaType, page }), source: 'TMDB' })
+        else {
+          const { people } = await searchPeople(query), person = people[0] ?? null
+          send(response, 200, { ...(person ? await castTitles(person.id, { mediaType, page }) : { titles: [], nextPage: null }), person, source: 'TMDB' })
+        }
       } else if (action === 'discover') send(response, 200, { ...await discoverTitles(readTitleOptions(url.searchParams)), refreshedAt: new Date().toISOString() })
       else if (action === 'recommendations') {
         const { titles, reference, nextPage } = await similarTitles(readTitleOptions(url.searchParams, true))
