@@ -16,7 +16,7 @@ import { interpretDescription } from '../../lib/discovery'
 import type { DescriptionFilters } from '../../lib/discovery'
 import type { SearchMovie, SearchPerson, SearchRequest, SearchResult, SearchTab, SimilarAspect } from './types/search'
 
-const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'person', label: 'Actor / actress' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a title' }, { id: 'similar', label: 'Similar to…' }]
+const tabs: { id: SearchTab; label: string }[] = [{ id: 'title', label: 'Title' }, { id: 'person', label: 'Actor / Actress' }, { id: 'mood', label: 'By mood' }, { id: 'description', label: 'Describe a title' }, { id: 'similar', label: 'Similar to…' }]
 interface Outcome { request: string; results: SearchResult[]; error?: string; nextPage?: number | null; endpoint?: string; parameters?: string }
 
 export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false }: { initial: SearchRequest; onClose: () => void; returnFocusTo: HTMLElement | null; embedded?: boolean }) {
@@ -29,7 +29,7 @@ export function SearchDialog({ initial, onClose, returnFocusTo, embedded = false
   const [searching, setSearching] = useState(false)
   const [tab, setTab] = useState<SearchTab>(initial.tab ?? 'title')
   const [titleMediaType, setTitleMediaType] = useState<MediaFilter>(initial.mediaType ?? 'all')
-  const [personMediaType, setPersonMediaType] = useState<MediaFilter>(initial.tab === 'person' ? initial.mediaType ?? 'movie' : 'movie')
+  const [personMediaType, setPersonMediaType] = useState<MediaFilter>(initial.tab === 'person' ? initial.mediaType ?? 'all' : 'all')
   const mediaType = tab === 'person' ? personMediaType : titleMediaType
   const setMediaType = tab === 'person' ? setPersonMediaType : setTitleMediaType
   const genreOptions = getGenreOptions(mediaType)

@@ -67,7 +67,7 @@ export function PersonAutocomplete({ value, selected, onChange, onSelect }: { va
     if (form && event.relatedTarget instanceof Node && form.contains(event.relatedTarget)) return
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }}>
-    <label htmlFor={id}>{t('Actor / actress')}</label>
+    <label htmlFor={id}>{t('Actor / Actress')}</label>
     <input id={id} role="combobox" aria-autocomplete="list" aria-expanded={expanded} aria-controls={`${id}-options`} aria-describedby={`${id}-help`} aria-activedescendant={expanded && active >= 0 ? `${id}-option-${active}` : undefined} autoComplete="off" maxLength={120} placeholder={t('Enter an actor or actress name')} value={value} onFocus={() => setOpen(true)} onChange={event => { onChange(event.target.value); setOpen(true) }} onKeyDown={event => {
       if (event.key === 'ArrowDown' && people.length) { event.preventDefault(); setOpen(true); setActive((active + 1) % people.length) }
       if (event.key === 'ArrowUp' && people.length) { event.preventDefault(); setOpen(true); setActive(active < 0 ? people.length - 1 : (active - 1 + people.length) % people.length) }
@@ -79,7 +79,7 @@ export function PersonAutocomplete({ value, selected, onChange, onSelect }: { va
     {open && status === 'loading' && <p role="status" className="autocomplete-status">{t('Searching actors and actresses…')}</p>}
     {open && status === 'ready' && !people.length && !nextPage && <p role="status" className="autocomplete-status">{t('No matching actors or actresses. Try another name.')}</p>}
     {open && status === 'error' && <p role="alert" className="autocomplete-status">{error} <button type="button" className="text-button" onClick={() => { document.getElementById(id)?.focus({ preventScroll: true }); setRetry(retry + 1); setOpen(true) }}>{t('Retry')}</button></p>}
-    <ul id={`${id}-options`} role="listbox" aria-label={t('Actor / actress')} aria-busy={loadingMore} className="autocomplete-options" hidden={!expanded}>
+    <ul id={`${id}-options`} role="listbox" aria-label={t('Actor / Actress')} aria-busy={loadingMore} className="autocomplete-options" hidden={!expanded}>
       {people.map((person, index) => <li key={person.id} id={`${id}-option-${index}`} role="option" aria-selected={active === index} onMouseDown={event => event.preventDefault()} onClick={() => choose(person)}>
         <div className="person-portrait" aria-hidden="true">{person.profileUrl ? <img src={person.profileUrl} alt="" loading="lazy" onError={event => { event.currentTarget.hidden = true }} /> : <UserRound size={24} />}</div>
         <span>{person.name}{person.knownFor.length > 0 && <small>{person.knownFor.join(' · ')}</small>}</span>

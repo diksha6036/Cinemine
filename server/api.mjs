@@ -53,7 +53,7 @@ async function handleLocalizedApi(request, response) {
         else send(response, 200, { ...await searchPeople(query, { page }), source: 'TMDB' })
       } else if (action === 'cast') {
         const id = url.searchParams.get('id'), query = (url.searchParams.get('q') ?? '').trim(), page = Number(url.searchParams.get('page') ?? '1')
-        const mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'movie')
+        const mediaType = readMediaType(url.searchParams.get('mediaType') ?? 'all')
         if ((id !== null ? !/^[1-9]\d{0,9}$/.test(id) : query.length < 2 || query.length > 120) || !Number.isInteger(page) || page < 1 || page > 500) send(response, 400, { error: 'Choose an actor or actress and a valid results page.' })
         else if (id !== null) send(response, 200, { ...await castTitles(id, { mediaType, page }), source: 'TMDB' })
         else {

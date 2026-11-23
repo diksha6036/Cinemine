@@ -45,7 +45,7 @@ export function createMetadata({ pathname = '/', origin, movie, movies = [], sta
   const robots = noIndex || missing || status >= 400 || (isTitle && !movie) ? 'noindex, follow' : 'index, follow, max-image-preview:large'
   const image = movie?.backdropUrl || movie?.posterUrl || `${base}/images/cinemine-share.png`
   const graph = [
-    { '@type': 'Organization', '@id': `${base}/#organization`, name: SITE_NAME, url: `${base}/`, logo: `${base}/images/cinemine-logo.jpg`, sameAs: ['https://www.instagram.com/dr.cinemine/'] },
+    { '@type': 'Organization', '@id': `${base}/#organization`, name: SITE_NAME, url: `${base}/`, logo: `${base}/images/cinemine-logo.png`, sameAs: ['https://www.instagram.com/dr.cinemine/'] },
     { '@type': 'WebSite', '@id': `${base}/#website`, name: SITE_NAME, url: `${base}/`, description: HOME_DESCRIPTION, publisher: { '@id': `${base}/#organization` } },
     { '@type': isCalendar || isDirectory ? 'CollectionPage' : 'WebPage', '@id': `${url}#webpage`, url, name: title, description, isPartOf: { '@id': `${base}/#website` } },
   ]

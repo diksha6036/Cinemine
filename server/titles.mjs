@@ -103,7 +103,7 @@ function isActingCredit(record) {
   const role = String(record.character ?? '').trim()
   return !/^(?:self|himself|herself|themselves|host|presenter|interviewee)\b/i.test(role) && !/\barchiv(?:e|al)\s+(?:footage|material)\b|\(archive\)/i.test(role)
 }
-export async function castTitles(id, { mediaType = 'movie', page = 1 } = {}) {
+export async function castTitles(id, { mediaType = 'all', page = 1 } = {}) {
   const data = await tmdb(`/person/${id}/combined_credits`, { language: 'en-US' })
   const credits = uniqueMovies((data.cast ?? []).filter(record => !record.adult && ['movie', 'tv'].includes(record.media_type) && (mediaType === 'all' || record.media_type === mediaType) && isActingCredit(record))
     .sort((left, right) => (Number(right.popularity) || 0) - (Number(left.popularity) || 0))

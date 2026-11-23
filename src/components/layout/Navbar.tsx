@@ -16,7 +16,7 @@ export function Navbar() {
   const tabs = [{ to: '/', label: 'Explore' }, { to: '/find-my-movie', label: 'Search' }, { to: '/where-to-watch', label: 'Where to watch' }, { to: '/calendar', label: 'Calendar' }]
   return <header className="site-header">
     <div className="page-container header-inner">
-      <Link className="brand" to="/" aria-label={t('cinemine home')}><img className="brand-image" src="/images/cinemine-logo.jpg" alt="" width={40} height={40} /><span>cinemine</span></Link>
+      <Link className="brand" to="/" aria-label={t('cinemine home')}><img className="brand-image" src="/images/cinemine-logo.png" srcSet="/images/cinemine-logo-small.png 128w, /images/cinemine-logo.png 512w" sizes="40px" alt="" width={40} height={40} /><span>cinemine</span></Link>
       <nav id="main-navigation" className="main-nav" aria-label={t('Main navigation')} inert={compactLayout} aria-hidden={compactLayout || undefined}>
         <NavLink to="/" end>{t('Explore')}</NavLink>
         <button type="button" className="nav-find" onClick={find}>{t('Find Movies & Series')}</button>

@@ -208,12 +208,14 @@ test('unknown people and empty acting credits return an empty state; source fail
   }, url => url.pathname.endsWith('/search/person') ? Response.json({ results: [] }) : url.pathname.endsWith('/person/100/combined_credits') ? Response.json({ cast: [], crew: [{ id: 7, media_type: 'movie' }] }) : url.pathname.endsWith('/person/101/combined_credits') ? new Response('', { status: 503 }) : undefined)
 })
 
-test('actor search defaults to movies and excludes interviews, reality shows and archive appearances even in All', async () => {
+test('actor search defaults to All and excludes interviews, reality shows and archive appearances', async () => {
   await isolated(async () => {
-    const defaultMovies = await request('/api/titles/cast?id=100')
-    assert.equal(defaultMovies.status, 200)
-    assert.deepEqual(defaultMovies.body.titles.map(mediaKey), ['movie:7', 'movie:14'])
-    assert.deepEqual(defaultMovies.body.roles, { 'movie:7': 'A fictional role', 'movie:14': 'Hostage negotiator' })
+    const defaults = await request('/api/titles/cast?id=100')
+    assert.equal(defaults.status, 200)
+    assert.deepEqual(defaults.body.titles.map(mediaKey), ['movie:7', 'tv:7', 'movie:14'])
+    assert.deepEqual(defaults.body.roles, { 'movie:7': 'A fictional role', 'tv:7': 'A series role', 'movie:14': 'Hostage negotiator' })
+    const movies = await request('/api/titles/cast?id=100&mediaType=movie')
+    assert.deepEqual(movies.body.titles.map(mediaKey), ['movie:7', 'movie:14'])
     const all = await request('/api/titles/cast?id=100&mediaType=all')
     assert.deepEqual(all.body.titles.map(mediaKey), ['movie:7', 'tv:7', 'movie:14'])
     assert.equal(all.body.roles['tv:7'], 'A series role')

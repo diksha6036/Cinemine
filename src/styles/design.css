@@ -3,7 +3,7 @@
 .header-inner { min-height: 76px; gap: 20px; }
 .brand { color: #f2e4ce; }
 .brand-dot { background: #dfcfb5; }
-.brand-image { width: 40px; height: 40px; border-radius: 50%; border-color: #dfcfb55c; }
+.brand-image { width: 40px; height: 40px; border-radius: 6px; border: 0; object-fit: contain; }
 .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 22px; margin-top: 30px; }
 .hero-actions .feature-button { padding: 14px 18px; }
 .hero-actions .text-button { color: #ecd5b8; font-size: 13px; }
